@@ -1,0 +1,60 @@
+ <!DOCTYPE html>
+<html>
+   <head>
+      <title>User Doucments</title>
+   </head>
+
+   <body>
+
+      <h1>Documents</h1>
+      <table style="width:100%">
+      <tbody>
+      	<tr>
+      	  <a href="mapsysInterview/Docs/SD/SD-I.pdf">Document 1 </a> <br>
+      	  <a href="mapsysInterview/Docs/SD/SD-II.pdf">Document 2 </a> <br>
+      	  <a href="mapsysInterview/Docs/SD/SD-III.pdf">Document 3 </a> <br>
+          <a href="mapsysInterview/Docs/SD/SD-IV.pdf">Document 4 </a> <br>
+          <a href="mapsysInterview/Docs/SD/SD-V.pdf">Document 5 </a> <br>
+          <a href="mapsysInterview/Docs/SD/SD-VI.pdf">Document 6</a> <br>
+          <a href="mapsysInterview/Docs/SD/SD-VII.pdf">Document 7</a> <br>
+          <a href="mapsysInterview/Docs/SIG/SIG.pdf">Document 8</a> <br>
+        <tr>
+      </table>
+
+    <!-- The file does not properly upload. Although it accepts the file, it doesnt actually update the webpage and update the excel sheet. 
+    I had some methods that I tried and some technologies that I saw on google but I couldnt implement them correctly -->
+
+    <h1>Please Select a PDF to upload</h1>
+    <br>
+    <form action="mapsysInterview/Documents.csv"> 
+       <input type="file" id="myFile" accept = ".pdf" name="name">
+       <input type="submit">
+    </form>
+    
+
+  <!-- Agian the program does not delete the file as needed. I had an idea on how to do it with the javascript that you see below. I was not able to implement it correctly. -->
+    <br>
+    <h1>Please Select a PDF to delete</h1>
+    <br>
+    <form action="mapsysInterview/Documents.csv">
+       <input type="file" id="myFile" name="name">
+       <input type="submit">
+    </form>
+
+    <script>
+        // read the file
+        fs.readFile('mapsysInterview/Documents.csv', 'utf8', function(err, data)
+        {
+          // Get an array of comma separated lines`
+          let lines = data.split('\n').slice(1);
+          // Turn that into a data structure we can parse (array of arrays)
+          let linesArray = lines.map(line=>line.split(','));
+          // Use filter to find the matching ID then return only those that don't matching
+          // deleting the found match
+          // Join then into a string with new lines
+          let output = linesArray.filter(line=>parseInt(line[0]) !== idSearch).join("\n");
+          // Write out new file
+          fs.writeFileSync('mapsysInterview/Documents.csv', output);
+        });
+
+    </script>
