@@ -27,8 +27,7 @@ app.use(cookieParser()) // execute cookieParser
 const url = process.env.DB_URL || 'mongodb://localhost:27017/test'
 
 // Import routes
-const airBnbRoutes = require('./routes/airBnbRoutes.js')
-const farmRoutes = require('./routes/farmRoutes.js')
+
 
 /**
  * CONNECT TO MONGOOSE DB
