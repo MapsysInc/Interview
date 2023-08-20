@@ -1,19 +1,21 @@
 /**
  * Title: server.js
- * Description: This file serves as the main entry point for my Express server. I set up middleware such as CORS and Morgan logger,
- * establish a connection to the database using Mongoose, and import and use defined routes like airBnbRoutes and farmRoutes.
- * These routes are connected to specific URL prefixes.
+ * Description: This file serves as the main entry point for my Express server. It sets up middleware for handling CORS, request logging with Morgan,
+ * parses cookies with cookie-parser, and serves static files from different directories based on URL parameters. It also establishes a connection
+ * to the MongoDB database using Mongoose and imports and uses defined routes for managing documents. 
+ * These routes are associated with specific URL prefixes.
  */
 
-// THIS IS MY EXPRESS SERVER -> how to write all this in c#?
+// initialize express server and allow env access
 const express = require('express')
 require('dotenv').config() // access env
 
-// Initialize helpers
+// initialize helpers
 const cookieParser = require('cookie-parser') // initialize parser
 const cors = require('cors') // initialize CORS (for all routes on Express server)
 const morgan = require('morgan') // initialize morgan logger
 const mongoose = require('mongoose') // initialize mongoose
+const path = require('path') // initialize file hosting
 
 // execute express
 const app = express() // set as var
@@ -23,14 +25,48 @@ app.use(cors()) // execute cors
 app.use(morgan('tiny')) // execute morgan
 app.use(cookieParser()) // execute cookieParser
 
+// dynamically serve files from different dirs
+// Custom middleware to determine the directory path based on a URL parameter
+app.use((req, res, next) => {
+  const dirParam = req.params.dir
+  let baseDir = '' // Default base directory
+
+  switch (dirParam) {
+    case 'SD':
+      baseDir = 'Docs/SD' // Serve from SD
+      break
+    case 'SIG':
+      baseDir = 'Docs/SIG' // Serve from SIG
+      break
+    default:
+      // Handle other cases or provide a default behavior
+      break
+  }
+  
+  // Update request object with resolved dir
+  // Define the root path for serving static files
+  const staticRoot = path.join(__dirname, baseDir)
+  console.log('Static File Root Path:', staticRoot)
+  
+  req.dirPath = staticRoot
+  next() // Continue to the next middleware or route
+})
+
+
+// Serve files from the dynamically determined directory
+app.use('/docs/:dir', express.static(path.join(__dirname, 'Docs')))
+
+
+
 // set connection vars
 const url = process.env.DB_URL || 'mongodb://localhost:27017/test'
 
-// Import routes
+// import routes
+const docRoutes = require('./routes/docRoutes.js')
 
 
 /**
- * CONNECT TO MONGOOSE DB
+ * CONNECT TO MONGO DB via MONGOOSE
 */
 mongoose.connect(url)
   .then(()=>{
@@ -45,4 +81,4 @@ mongoose.connect(url)
   })
 
 // Define API endpoint
-app.use('/docs', documentRoutes)
+app.use('/docRoutes', docRoutes)
