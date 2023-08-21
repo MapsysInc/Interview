@@ -15,7 +15,6 @@ const cookieParser = require('cookie-parser') // initialize parser
 const cors = require('cors') // initialize CORS (for all routes on Express server)
 const morgan = require('morgan') // initialize morgan logger
 const mongoose = require('mongoose') // initialize mongoose
-const path = require('path') // initialize file hosting
 
 // execute express
 const app = express() // set as var
@@ -30,7 +29,6 @@ const url = process.env.DB_URL || 'mongodb://localhost:27017/test'
 
 // import routes
 const docRoutes = require('./routes/documents/docRoutes.js')
-
 
 /**
  * CONNECT TO MONGO DB via MONGOOSE
@@ -48,4 +46,4 @@ mongoose.connect(url)
   })
 
 // Define API endpoint
-app.use('/docRoutes', docRoutes)
+app.use('/sd', docRoutes)

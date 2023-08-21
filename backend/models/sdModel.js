@@ -20,8 +20,15 @@ const sdSchema = new mongoose.Schema({
         type: String,
         required: true
     }
+},
+{
+    collection:'pdfStorage'  
 })
-
+// set storage url
+sdSchema.pre('save', function(next){
+    this.fileUrl = `/documents/${this.file}`
+    next()
+})
 // compile model
 const SupportingDoc = mongoose.model('SupportingDoc', sdSchema)
 
