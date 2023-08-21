@@ -25,44 +25,11 @@ app.use(cors()) // execute cors
 app.use(morgan('tiny')) // execute morgan
 app.use(cookieParser()) // execute cookieParser
 
-// dynamically serve files from different dirs
-// Custom middleware to determine the directory path based on a URL parameter
-app.use((req, res, next) => {
-  const dirParam = req.params.dir
-  let baseDir = '' // Default base directory
-
-  switch (dirParam) {
-    case 'SD':
-      baseDir = 'Docs/SD' // Serve from SD
-      break
-    case 'SIG':
-      baseDir = 'Docs/SIG' // Serve from SIG
-      break
-    default:
-      // Handle other cases or provide a default behavior
-      break
-  }
-  
-  // Update request object with resolved dir
-  // Define the root path for serving static files
-  const staticRoot = path.join(__dirname, baseDir)
-  console.log('Static File Root Path:', staticRoot)
-  
-  req.dirPath = staticRoot
-  next() // Continue to the next middleware or route
-})
-
-
-// Serve files from the dynamically determined directory
-app.use('/docs/:dir', express.static(path.join(__dirname, 'Docs')))
-
-
-
 // set connection vars
 const url = process.env.DB_URL || 'mongodb://localhost:27017/test'
 
 // import routes
-const docRoutes = require('./routes/docRoutes.js')
+const docRoutes = require('./routes/documents/docRoutes.js')
 
 
 /**
