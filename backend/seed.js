@@ -22,17 +22,16 @@ function getHighestRoman(directoryPath) {
       return match ? match[1] : null // match attempts to match regex pattern
     })
     .filter((numeral) => numeral !== null)
-
+    .map((numeral) => {
+      return { numeral,
+      numericValue: romanToNumeric(numeral)}
+    })
   if (currentNumerals.length === 0) {
     return 'VIII' // Start from VIII if no existing files
   }
   console.log('Current Numerals:', currentNumerals)
-  
-  // Sort numerals in desc order and return the highest one
-  const currentHighest = currentNumerals
-    .sort((a, b) => romanize(b) - romanize(a))[0]
-    
-  return currentHighest // Return the highest numeral as-is
+  const highestNumeral = currentNumerals.sort((a,b) => b.numericValue - a.numericValue)[0].numeral    
+  return highestNumeral // Return the highest numeral as-is
 }
 // temp helper function to incriment roman numeral titles
 function romanToNumeric(roman) {
