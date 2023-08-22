@@ -26,7 +26,7 @@ const sdSchema = new mongoose.Schema({
 })
 // set storage url
 sdSchema.pre('save', function(next){
-    this.fileUrl = `/documents/${this.file}`
+    this.fileUrl = `/Docs/SD/${this.title}`
     next()
 })
 // compile model

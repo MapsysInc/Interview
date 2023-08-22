@@ -3,49 +3,85 @@ const mongoose = require('mongoose')
 const fs = require('fs')
 const path = require('path')
 const SupportingDoc = require('./models/sdModel') // Import your Mongoose model
-const PDFDocument = require('pdfkit') // initialize pdf construction
-const romanize = require('romanize') // initialize roman numeral conversion
+const PDFDocument = require('pdfkit')             // initialize pdf construction
+const romanize = require('romanize')              // initialize roman numeral conversion
 require('dotenv').config()
 
 // Connect to MongoDB (if not already connected)
-mongoose.connect(process.env.DB_URL)
+// mongoose.connect(process.env.DB_URL)
+mongoose.connect('mongodb://localhost:27017/test')
 const directoryPath = path.join(__dirname, '..', 'Docs', 'SD')
 
 function getHighestRoman(directoryPath) {
-  const files = fs.readdirSync(directoryPath)
-  const romanNumerals = files
+   // read dir using node built in file system's readdirSync. This blocks code from running 
+   // until all contents are read and processed
+  const currentNumerals = fs.readdirSync(directoryPath)
     .filter((fileName) => fileName.startsWith('SD-'))
-    .map((fileName) => {
-      const match = fileName.match(/SD-(.*?).pdf/)
-      return match ? match[1] : null
+    .map((fileName) => { // process array
+      const match = fileName.match(/SD-(.*?).pdf/) // regex (regular expression) pattern to match filenames
+      return match ? match[1] : null // match attempts to match regex pattern
     })
     .filter((numeral) => numeral !== null)
 
-  if (romanNumerals.length === 0) {
+  if (currentNumerals.length === 0) {
     return 'VIII' // Start from VIII if no existing files
   }
-
-  // Sort the Roman numerals and get the highest one
-  const highestNumeral = romanNumerals
+  console.log('Current Numerals:', currentNumerals)
+  
+  // Sort numerals in desc order and return the highest one
+  const currentHighest = currentNumerals
     .sort((a, b) => romanize(b) - romanize(a))[0]
+    
+  return currentHighest // Return the highest numeral as-is
+}
+// temp helper function to incriment roman numeral titles
+function romanToNumeric(roman) {
+  const romanValues = {
+    I: 1,
+    IV: 4,
+    V: 5,
+    IX: 9,
+    X: 10,
+    XL: 40,
+    L: 50,
+    XC: 90,
+    C: 100,
+    CD: 400,
+    D: 500,
+    CM: 900,
+    M: 1000
+  }
 
-  return highestNumeral // Return the highest numeral as-is
+  let numericValue = 0
+  let i = 0
+
+  while (i < roman.length) {
+    if (i + 1 < roman.length && romanValues[roman.substring(i, i + 2)]) {
+      numericValue += romanValues[roman.substring(i, i + 2)]
+      i += 2
+    } else {
+      numericValue += romanValues[roman[i]]
+      i++
+    }
+  }
+
+  return numericValue
 }
 
-// Determine the next Roman numeral
-// const nextRomanNumeral = getHighestRoman(
-//   path.join(__dirname, '..', 'Docs', 'SD')
-// )
+// take highest numeral, add one then romanize
+const highestNumeral = getHighestRoman(directoryPath)
+const numericValue = romanToNumeric(highestNumeral)
+const nextNumericValue = numericValue + 1
+const nextRomanNumeral = romanize(nextNumericValue)
 
-const nextRomanNumeral = romanize(romanize(getHighestRoman(directoryPath)) + 1)
-// let currentRomanNumeral = 8 // since we are staring with sd7, we will hardcode this count
 
-const romanNumeral = romanize(nextRomanNumeral)
-const fileName = `SD-${romanNumeral}.pdf` // Define the file name using the next Roman numeral
+// PDF PREP
+const fileName = `SD-${nextRomanNumeral}.pdf` // Define the file name using the next Roman numeral
 const filePath = path.join(__dirname, '..', 'Docs', 'SD', fileName) // Define the file path
 const doc = new PDFDocument() // call pdfkit
-const description = 'this is a dummy document for testing purposes and is hard coded for now.'
-doc.text(fileName) // add content to pdf
+const description = `SD-${nextRomanNumeral}`  // set description/content to fileName for now
+
+doc.text(description)  // add content to pdf
 
 const pdfStream = fs.createWriteStream(filePath) // create write stream
 
@@ -57,7 +93,7 @@ pdfStream.on('finish', () => {
   // pdf is generated 
   const dummyDoc = new SupportingDoc({
     title: fileName,
-    description: fileName,
+    description: description,
     category: 'supporting documents',
     fileUrl: `/Docs/SD/${fileName}`
   })
