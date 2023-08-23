@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
-const csvParser = require('csv-parser');
-const fs = require('fs');
-const path = require('path');
-const newDocument = require('../backend/models/documentModel'); // Import your Mongoose model
-const PDFDocument = require('pdfkit');// initialize pdf construction
-const { generateNextRomanNumeral } = require('./utils/fileUtils');
+const mongoose = require('mongoose')
+const csvParser = require('csv-parser')
+const fs = require('fs')
+const path = require('path')
+const newDocument = require('../backend/models/documentModel')
+const PDFDocument = require('pdfkit') // initialize pdf construction
+const { generateNextRomanNumeral } = require('../utils/romanUtils');
+
 
 require('dotenv').config();
 
@@ -61,19 +62,19 @@ async function seedDocument(document, newDocument) {
 
 async function createAndStorePdf(newDocument) {
     try {
-    // pdf prep
-    const directoryPath = path.join(__dirname, '..', 'Docs', 'SD');
-    const nextRomanNumeral = generateNextRomanNumeral(directoryPath);
-    const fileName = `SD-${nextRomanNumeral}.pdf`; // Define the file name using the next Roman numeral
-    const filePath = path.join(__dirname, '..', 'Docs', 'SD', fileName); // Define the file path
-    const doc = new pdfkit(); // call pdfkit
-    const description = `SD-${nextRomanNumeral}`;  // set description/content to fileName for now
+      // pdf prep
+      const directoryPath = path.join(__dirname, '..', 'Docs', 'SD')
+      const nextRomanNumeral = generateNextRomanNumeral(directoryPath)
+      const fileName = `SD-${nextRomanNumeral}.pdf` // Define the file name using the next Roman numeral
+      const filePath = path.join(__dirname, '..', 'Docs', 'SD', fileName) // Define the file path
+      const doc = new pdfkit() // call pdfkit
+      const description = `SD-${nextRomanNumeral}`  // set description/content to fileName for now
 
     // populate pdf
-    doc.text(description);  // add content to pdf
-    const pdfStream = fs.createWriteStream(filePath); // create write stream
-    doc.pipe(pdfStream); // pipe output to filepath (writable stream)
-    doc.end(); // finalize pdf - listen for "finish" event on pdfStream
+    doc.text(description)  // add content to pdf
+    const pdfStream = fs.createWriteStream(filePath) // create write stream
+    doc.pipe(pdfStream) // pipe output to filepath (writable stream)
+    doc.end() // finalize pdf - listen for "finish" event on pdfStream
     pdfStream.on('finish', async () => {
     try {
         // Create a new newDocument instance with dummy data now that
@@ -84,18 +85,18 @@ async function createAndStorePdf(newDocument) {
           category: 'supporting documents',
           fileUrl: `/Docs/SD/${fileName}`
         });
-        const savedDoc = await dummyDoc.save();
-        console.log('Doc saved successfully', savedDoc);
+        const savedDoc = await dummyDoc.save()
+        console.log('Doc saved successfully', savedDoc)
     } catch (error) {
-        console.error(`Error saving doc: ${error}`);
+        console.error(`Error saving doc: ${error}`)
     }
-    });
+    })
 
       pdfStream.on('error', (error) => {
-        console.error(`Error writing pdf: ${error}`);
+        console.error(`Error writing pdf: ${error}`)
       });
     } catch (error) {
-      console.error(`Error creating PDF and storing: ${error}`);
+      console.error(`Error creating PDF and storing: ${error}`)
     }
 }
 
@@ -103,7 +104,7 @@ async function createAndStorePdf(newDocument) {
 function readCsv(csvFilePath){
   return new Promise((resolve, reject) => {
     const results = []
-    fs.createReadStream(filePath)
+    fs.createReadStream(csvFilePath)
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', () => resolve(results))

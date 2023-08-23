@@ -3,7 +3,7 @@ const path = require('path')
 const PDFDocument = require('pdfkit')
 const {  createAndStorePdf, readCsv } = require('../utils/fileUtils')
 const {generateNextRomanNumeral} = require('../utils/romanUtils.js')
-const SupportingDoc = require('./models/documentModel') // Import your Mongoose model
+const SupportingDoc = require('./models/documentModel')
 
 async function createPdfAndStore() {
   try {

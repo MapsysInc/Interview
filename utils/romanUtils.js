@@ -62,5 +62,6 @@ function generateNextRomanNumeral(directoryPath){
 }
 module.exports = {
     romanToNumeric,
-    getHighestRoman
+    getHighestRoman,
+    generateNextRomanNumeral
   };
