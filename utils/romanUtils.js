@@ -54,14 +54,14 @@ const highestNumeral = currentNumerals.
 return highestNumeral // Return the highest numeral as-is
 }
 function generateNextRomanNumeral(directoryPath){
-    const highestNumeral = getHighestRoman(directoryPath);
-    const numericValue = romanToNumeric(highestNumeral);
-    const nextNumericValue = numericValue + 1;
-    const nextRomanNumeral = romanize(nextNumericValue);
-    return nextRomanNumeral;
+    const highestNumeral = getHighestRoman(directoryPath)
+    const numericValue = romanToNumeric(highestNumeral)
+    const nextNumericValue = numericValue + 1
+    const nextRomanNumeral = romanize(nextNumericValue)
+    return nextRomanNumeral
 }
 module.exports = {
     romanToNumeric,
     getHighestRoman,
     generateNextRomanNumeral
-  };
+  }

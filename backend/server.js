@@ -46,4 +46,4 @@ mongoose.connect(url)
   })
 
 // Define API endpoint
-app.use('/sd', docRoutes)//
+app.use('/docs', docRoutes)//

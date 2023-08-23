@@ -6,7 +6,7 @@ const path = require('path')
 // store docs
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '../../Docs/SD'); // Store files in "Docs"
+    cb(null, '../../Docs/SD') // Store files in "Docs"
   },
   filename: function (req, file, cb) {
     // Define how uploaded files are named
@@ -46,4 +46,4 @@ router.use('/docs/:dir', (req, res, next) => {
 // route to display all docs within csv
 
 
-module.exports = router; // Export the router instance
+module.exports = router // Export the router instance
