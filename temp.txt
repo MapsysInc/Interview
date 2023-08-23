@@ -8,8 +8,8 @@ const romanize = require('romanize')              // initialize roman numeral co
 require('dotenv').config()
 
 // Connect to MongoDB (if not already connected)
-// mongoose.connect(process.env.DB_URL)
-mongoose.connect('mongodb://localhost:27017/test')
+mongoose.connect(process.env.DB_URL)
+// mongoose.connect('mongodb://localhost:27017/test')
 const directoryPath = path.join(__dirname, '..', 'Docs', 'SD')
 
 function getHighestRoman(directoryPath) {
@@ -30,7 +30,8 @@ function getHighestRoman(directoryPath) {
     return 'VIII' // Start from VIII if no existing files
   }
   console.log('Current Numerals:', currentNumerals)
-  const highestNumeral = currentNumerals.sort((a,b) => b.numericValue - a.numericValue)[0].numeral    
+  const highestNumeral = currentNumerals.
+    sort((a,b) => b.numericValue - a.numericValue)[0].numeral // was trying to sort strings lol
   return highestNumeral // Return the highest numeral as-is
 }
 // temp helper function to incriment roman numeral titles

@@ -2,7 +2,7 @@
 const mongoose = require('mongoose') 
 
 // define schema
-const sdSchema = new mongoose.Schema({
+const docSchema = new mongoose.Schema({
     title:{
         type: String,
         required: true
@@ -20,17 +20,20 @@ const sdSchema = new mongoose.Schema({
         type: String,
         required: true
     }
-},
-{
-    collection:'pdfStorage'  
-})
+    },
+    {
+        collection:'pdfStorage'  
+    }
+)
+
 // set storage url
-sdSchema.pre('save', function(next){
+docSchema.pre('save', function(next){
     this.fileUrl = `/Docs/SD/${this.title}`
     next()
 })
+
 // compile model
-const SupportingDoc = mongoose.model('SupportingDoc', sdSchema)
+const Document = mongoose.model('Document', docSchema)
 
 // export
-module.exports = SupportingDoc
+module.exports = Document
