@@ -26,8 +26,8 @@ const docSchema = new mongoose.Schema({
 // don't need the pre-save hook to set the fileUrl anymore, since it's calculated on-the-fly when property is accessed
 docSchema.virtual('fileUrl').get(function() {
     // Define the base directory based on the category
-    const baseDir = this.category === 'signatures' ? 'SIG' : 'SD';
-    return `/Docs/${baseDir}/${this.title}`;
+    const baseDir = this.category === 'signatures' ? 'SIG' : 'SD'
+    return `/Docs/${baseDir}/${this.title}`
   })
 
 // compile model
