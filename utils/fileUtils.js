@@ -103,19 +103,18 @@ async function createAndStorePdf() {
 
 // read and return csv data
 // going to have to invert the slashes for logic purposes
-function readCsv(csvFilePath, baseDir){
+function readCsv(csvFilePath, baseDir, category){
   return new Promise((resolve, reject) => {
     const results = []
     fs.createReadStream(csvFilePath)
     .pipe(csv())
     .on('data', (data) => {
-      const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
-      const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '') //erase baseDir by replacing it with empty char
-      results.push({ ...data, fullPath, relativePath })
-      // results.push({
-      //   name: data.Name,
-      //   path: data.Path.replace(/\\/g,'/'),
-      //   category: data.Category
+      if (data.Category === category) {
+        const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
+        const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
+        
+        results.push({ ...data, fullPath, relativePath })
+      }
     })
     .on('end', () => resolve(results))
     .on('error', (error) => reject(error))

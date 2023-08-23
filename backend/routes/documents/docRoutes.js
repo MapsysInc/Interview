@@ -77,29 +77,24 @@ router.use('/:dir', (req, res, next) => {
 })
 
 // route to display all docs within csv
-// read csv
-// query for each row
-// return data
 router.get('/all', async (req, res) => {
   try{
-    const baseDir = path.join(__dirname, '../../../Docs') // establish base dir to sidestep relative paths in csv
-    const csvFilePath = path.join(baseDir, 'Documents.csv')
-    const sdCsvData = await readCsv(csvFilePath, baseDir, 'Supporting Documents')
-    const sigCsvData = await readCsv(csvFilePath, baseDir,'Signature Documents')
-    console.log(csvData)
+    // read csv
+    const baseDir = path.join(__dirname, '../../../Docs') // establish base dir
+    const csvFilePath = path.join(baseDir, 'Documents.csv') // set csv file path
+    const sdCsvData = await readCsv(csvFilePath, baseDir, 'Supporting Documents') // pass category (should this not be dynamically passed in?)
+    const sigCsvData = await readCsv(csvFilePath, baseDir,'Signatures') // is base dir needed?
     
-    const documentPaths = csvData.map((row) => row.relativePath)
+    // query for each row
+    // Concatenate relative paths for both types of documents
+    const allCsvData = [...sdCsvData, ...sigCsvData]
+    const documentPaths = allCsvData.map((row) => row.relativePath)
     const matchingDocuments = await Document.find({ fileUrl: { $in: documentPaths } })
     
-    // console.log('Constructed File Paths:')
-    //   csvData.forEach((row) => {
-    //     console.log(row.relativePath)
-    //   })
-    console.log('Matching Documents:', matchingDocuments) // Log the matching documents
+    // return data
+    // console.log('Matching Documents:', matchingDocuments) // debug
     res.json(matchingDocuments)
-    // const allDocuments = await Document.find()
-    // console.log('call made')
-    // res.json(allDocuments)
+
   }catch (e){
     console.error(e)
     res.status(500).json({ error: 'Error reading csv file'})
