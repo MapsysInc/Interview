@@ -5,38 +5,36 @@
 <template lang="pug">
 div
     h2.navbar-header Ready To Rock!
-        
+    PdfDisplay(:documents="documents")
 </template>
     
-    <script>
-    import {mapState} from 'vuex'
-    
-    export default {
+<script>
+import PdfDisplay from "@/components/pdfDisplay.vue"
+import { mapState, mapActions } from "vuex";
+
+export default {
     name: "Landing",
     props: {},
     computed:{
-        ...mapState(['reviews']),
-        showItems(){
-        return this.reviews && this.reviews.length > 0
+        ...mapState(['documents'])
+    },
+    components:{
+        PdfDisplay,
+    },
+    methods:{
+        ...mapActions(['fetchAllDocuments'])
+    },
+    data(){ //store & manage reactive data
+        return{
+            documents: []
         }
+    },
+    async created(){
+        await this.fetchAllDocuments()
     }
-    }
-    </script>
+}
+</script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-    margin: 40px 0 0;
-}
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-li {
-    display: inline-block;
-    margin: 0 10px;
-}
-a {
-    color: #000000;
-}
+
 </style>

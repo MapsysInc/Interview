@@ -77,6 +77,7 @@ router.use('/:dir', (req, res, next) => {
 })
 
 // route to display all docs within csv
+// TODO: TOLOWER
 router.get('/all', async (req, res) => {
   try{
     // read csv
