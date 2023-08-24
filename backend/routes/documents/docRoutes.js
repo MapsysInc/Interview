@@ -4,7 +4,7 @@ const router = express.Router()
 const path = require('path')
 const fs = require('fs') // initialize file system for csvParser
 const csv = require('csv-parser') // initialize csv-parser to read csv data
-const {  createAndStorePdf, readCsv } = require('../../../utils/fileUtils')
+const {  createAndStoreDocument, readCsv } = require('../../../utils/fileUtils')
 const Document = require('../../models/documentModel')
 // const dummy = require('../../../Docs/Documents.csv')
 // store generated docs
@@ -47,7 +47,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
 //TODO: pass in text user input
 router.post('/create', async (req, res) => {
   try {
-    const result = await createAndStorePdf() // Call the utility function
+    const result = await createAndStoreDocument() // Call the utility function
     res.json({ message: 'PDF created and document saved successfully', result })
   } catch (error) {
     console.error(`Error creating PDF and storing: ${error}`)
