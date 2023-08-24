@@ -34,7 +34,7 @@ async function parseAndSeed(csvFilePath, newDocument) {
   })
 }
 
-// send  doc to db - dont really need this
+// send  doc to db - dont really need this | it's logic to inject into db
 async function seedDummyDocument(document, newDocument) {
   try {
     const { name, path, category } = document
@@ -107,7 +107,7 @@ async function createAndStoreDocument() {
   }
 }
 
-async function generateDocument(filePath, description){
+async function generateNewDocument(filePath, description){
   const doc = new PDFDocument()
   const pdfStream = fs.createWriteStream(filePath)
   
@@ -121,22 +121,11 @@ async function generateDocument(filePath, description){
   })
 }
 
-async function populateDocumentData(info){
-  // try{
-  //   const { directoryPath, fileName, description } = info
-  //   const filePath = path.join(directoryPath, fileName)
-    
-  //   await generateDocument(filePath, description)
-  //   return filePath // return generated file path
-  
-  // }catch(e){
-  //   console.error(`Error populating document!!! ${e}`)
-  // }
+async function populateDocData(category){
   const storageDir = getStorageDir(category)
   const nextRomanNumeral = generateNextRomanNumeral(storageDir)
-  
   // this is going to give me issues - maybe parse and drop up to final dir (eg /SD)?
-  // turnery for now
+  // feels lazy but ternary  for now
   const fileName = `${category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
   const filePath = path.join(storageDir, fileName)
   const description = `${category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
@@ -144,7 +133,6 @@ async function populateDocumentData(info){
   return { fileName, filePath, description}
 }
 
-// I think I renamed docData to Documents but it could have messed with everytging. i unddid it all i think
 async function injectDocument(docData){
   try{
     // instead of passing in multiple args I decided to encapsulate into an obj
