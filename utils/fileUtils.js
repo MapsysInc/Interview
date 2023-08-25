@@ -7,105 +7,80 @@ require('dotenv').config()
 // const newDocument = require('../backend/models/documentModel')
 
 // may need
-async function parseAndSeed(csvFilePath, newDocument) {
-  const documents = []
+// async function parseAndSeed(csvFilePath, newDocument) {
+//   const documents = []
 
-  return new Promise((resolve, reject) => {
-    fs.createReadStream(csvFilePath)
-      .pipe(csvParser())
-      .on('data', (row) => {
-        documents.push({
-          name: row.Name,
-          path: row.Path,
-          category: row.Category
-        })
-      })
-      .on('end', async () => {
-        console.log('CSV file parsed successfully')
-        try {
-          for (const document of documents) {
-            await seedDocument(document, newDocument)
-          }
-          resolve(documents)
-        } catch (error) {
-          reject(error)
-        }
-      })
-  })
-}
+//   return new Promise((resolve, reject) => {
+//     fs.createReadStream(csvFilePath)
+//       .pipe(csvParser())
+//       .on('data', (row) => {
+//         documents.push({
+//           name: row.Name,
+//           path: row.Path,
+//           category: row.Category
+//         })
+//       })
+//       .on('end', async () => {
+//         console.log('CSV file parsed successfully')
+//         try {
+//           for (const document of documents) {
+//             await seedDocument(document, newDocument)
+//           }
+//           resolve(documents)
+//         } catch (error) {
+//           reject(error)
+//         }
+//       })
+//   })
+// }
 
 // send  doc to db - dont really need this | it's logic to inject into db
-async function seedDummyDocument(document, newDocument) {
-  try {
-    const { name, path, category } = document
-    const titleMatch = path.match(/\\([^\\]+\.pdf)$/)
-    if (titleMatch) {
-      const title = titleMatch[1] // Extract title from the path
+// async function seedDummyDocument(document, newDocument) {
+//   try {
+//     const { name, path, category } = document
+//     const titleMatch = path.match(/\\([^\\]+\.pdf)$/)
+//     if (titleMatch) {
+//       const title = titleMatch[1] // Extract title from the path
       
-      const dummyDoc = new Document({
-        title: title,
-        description: name,
-        category: category,
-        fileUrl: path
-      })
-      await dummyDoc.save()
-      console.log(`Document ${title} saved successfully`)
-    } else {
-      console.error(`Error extracting title from path: ${path}`)
-    }
+//       const dummyDoc = new Document({
+//         title: title,
+//         description: name,
+//         category: category,
+//         fileUrl: path
+//       })
+//       await dummyDoc.save()
+//       console.log(`Document ${title} saved successfully`)
+//     } else {
+//       console.error(`Error extracting title from path: ${path}`)
+//     }
+//   } catch (error) {
+//     console.error(`Error saving document ${document.name}: ${error}`)
+//   }
+// }
+
+async function createAndStoreDocument(category) {
+  try {
+    const docData = await populateDocData(category)
+    const filePath = await generateNewDocument(docData.filePath, docData.description)
+
+    const storedDocument = await injectDocument({
+      title: docData.fileName,
+      description: docData.description,
+      category: category,
+      fileName: docData.fileName,
+    })
+
+    console.log('Document saved successfully', storedDocument)
+
+    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
+    await writeCsv(csvFilePath, storedDocument)
+
+    console.log('CSV Updated!')
   } catch (error) {
-    console.error(`Error saving document ${document.name}: ${error}`)
+    console.error(`Error creating and storing document: ${error}`)
   }
 }
 
-async function createAndStoreDocument() {
-  try {
-    // pdf prep
-    const directoryPath = path.join(__dirname, '..', 'Docs', 'SD')
-    const nextRomanNumeral = generateNextRomanNumeral(directoryPath)
-    
-    const fileName = `SD-${nextRomanNumeral}.pdf` // Define the file name using the next Roman numeral
-    const filePath = path.join(__dirname, '..', 'Docs', 'SD', fileName) // Define the file path
-    const doc = new PDFDocument() // call pdfkit
-    
-    // TODO: make description an input from user with a default of the fileName
-    const description = `Supporting Document ${currentNumeral}`
-
-    // populate pdf
-    doc.text(description)  // add content to pdf
-    const pdfStream = fs.createWriteStream(filePath) // create write stream
-    doc.pipe(pdfStream) // pipe output to filepath (writable stream)
-    doc.end() // finalize pdf - listen for "finish" event on pdfStream
-    console.log(`first try pass`)
-    pdfStream.on('finish', async () => {
-      
-      // populate new Document instance with data
-      try {
-        const dummyDoc = new Document({
-          title: fileName,
-          description: description,
-          category: 'supporting documents',
-          fileUrl: `/Docs/SD/${fileName}`
-        })
-        
-        dummyDoc.save()
-        const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
-        await writeCsv(csvFilePath, dummyDoc)
-        console.log('Doc saved successfully', dummyDoc)
-        console.log(`second try pass`)
-        
-      } catch (error) {
-        console.error(`Error saving doc: ${error}`)
-      }
-    })
-
-    pdfStream.on('error', (error) => {
-      console.error(`Error writing pdf: ${error}`)
-    })
-  } catch (error) {
-    console.error(`Error creating PDF and storing: ${error}`)
-  }
-}
 
 async function generateNewDocument(filePath, description){
   const doc = new PDFDocument()
@@ -203,7 +178,7 @@ async function writeCsv(csvFilePath, document){
 
 
 module.exports = {
-  parseCsvAndSeedDocuments: parseAndSeed,
+  //parseCsvAndSeedDocuments: parseAndSeed,
   createAndStoreDocument: createAndStoreDocument,
   readCsv: readCsv,
   writeCsv: writeCsv,
