@@ -3,90 +3,125 @@ const fs = require('fs')
 const path = require('path')
 const PDFDocument = require('pdfkit') // initialize pdf construction
 const { generateNextRomanNumeral } = require('../utils/romanUtils')
+const { log } = require('../utils/generalUtils')
+const Document = require('../backend/models/documentModel')
 require('dotenv').config()
-// const newDocument = require('../backend/models/documentModel')
 
-// may need
-// async function parseAndSeed(csvFilePath, newDocument) {
-//   const documents = []
 
-//   return new Promise((resolve, reject) => {
-//     fs.createReadStream(csvFilePath)
-//       .pipe(csvParser())
-//       .on('data', (row) => {
-//         documents.push({
-//           name: row.Name,
-//           path: row.Path,
-//           category: row.Category
-//         })
-//       })
-//       .on('end', async () => {
-//         console.log('CSV file parsed successfully')
-//         try {
-//           for (const document of documents) {
-//             await seedDocument(document, newDocument)
-//           }
-//           resolve(documents)
-//         } catch (error) {
-//           reject(error)
-//         }
-//       })
-//   })
-// }
 
-// send  doc to db - dont really need this | it's logic to inject into db
-// async function seedDummyDocument(document, newDocument) {
-//   try {
-//     const { name, path, category } = document
-//     const titleMatch = path.match(/\\([^\\]+\.pdf)$/)
-//     if (titleMatch) {
-//       const title = titleMatch[1] // Extract title from the path
-      
-//       const dummyDoc = new Document({
-//         title: title,
-//         description: name,
-//         category: category,
-//         fileUrl: path
-//       })
-//       await dummyDoc.save()
-//       console.log(`Document ${title} saved successfully`)
-//     } else {
-//       console.error(`Error extracting title from path: ${path}`)
-//     }
-//   } catch (error) {
-//     console.error(`Error saving document ${document.name}: ${error}`)
-//   }
-// }
-
-async function createAndStoreDocument(category) {
+/**
+ * Name: createAndStoreDocument
+ * Desc: Creates and stores a document with the given information.
+ * @param {Object} inputDoc - The document object with properties like category, title, etc.
+ * @returns {Promise<void>} - A Promise that resolves after the document is created and stored.
+ */
+async function createAndStoreDocument(inputDoc) {
   try {
-    const docData = await populateDocData(category)
-    const filePath = await generateNewDocument(docData.filePath, docData.description)
-
-    const storedDocument = await injectDocument({
+    log("creating and storing document")
+    const docData = await populateDocData(inputDoc) // generate doc data
+    log("document data populated")
+    const filePath = await generateNewDocument(docData) // generate new doc with doc data
+    log("document generated")
+    const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
       description: docData.description,
-      category: category,
+      category: inputDoc.category,
       fileName: docData.fileName,
     })
-
-    console.log('Document saved successfully', storedDocument)
-
+    log("document injected into db")
     const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
-    await writeCsv(csvFilePath, storedDocument)
-
-    console.log('CSV Updated!')
+    await writeCsv(csvFilePath, storedDocument) // update csv
+    log("csv updated")
+    
   } catch (error) {
     console.error(`Error creating and storing document: ${error}`)
   }
 }
 
 
-async function generateNewDocument(filePath, description){
-  const doc = new PDFDocument()
-  const pdfStream = fs.createWriteStream(filePath)
+
+/**
+ * Name: populateDocData 
+ * Desc: Populates document data based on the specified category
+ * @param {Object} inputDoc -
+ * @returns {Object} An object containing the populated document data: fileName, filePath, and description.
+ * TODO encapsulate ternary logic
+ */
+async function populateDocData(inputDoc){
+  log("populating document data")
+  const storageDir = getStorageDir(inputDoc.category)
+  log("directory established")
+  const prefix = getPrefixForDocParse(inputDoc)
+  const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
+  // feels lazy but ternary  for now
+  const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
+  const filePath = path.join(storageDir, fileName)
+  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
   
-  doc.text(description)
+  return { fileName, filePath, description}
+}
+
+
+
+/**
+ * Name: getStorageDir
+ * Desc: Gets the storage directory based on the category.
+ * @param {string} category - The category of the document ('supporting documents' or 'signatures').
+ * @returns {string} - The storage directory path.
+ */
+function getStorageDir(category) {
+  log("establishing directory")
+  let baseDir = ''
+  switch (category) {
+    case 'supporting documents':
+      baseDir = '../Docs/SD'
+      break
+    case 'signatures':
+      baseDir = '../Docs/SIG'
+      break
+    default:
+      baseDir = '../Docs/SD' // Default to SD
+      break
+  }
+  log(`directory established: ${baseDir}`)
+  return path.join(__dirname, baseDir)
+}
+
+
+
+/**
+ * Name: getPrefixForDocParse
+ * Desc: 
+ * @param {object} inputDoc - 
+ * @returns {substr} prefix - 
+ */
+function getPrefixForDocParse(inputDoc){
+  let baseDir = getStorageDir(inputDoc.category)
+  const filePath = baseDir
+  // log(`FAILURE AT: FILE PATH`)
+  const fullPath = path.join(baseDir, filePath).replace(/\\/g, '/')
+  // log(`FAILURE AT: FULL PATH`)
+  const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
+  // log(`FAILURE AT: RELATIVE PATH`)
+  const prefix = relativePath.substr(0,3)
+  log(`prefix is ${prefix}`)
+  return prefix
+}
+
+
+
+/**
+ * Name: generateNewDocument
+ * Desc: Generates a new PDF document using provided data.
+ * @param {Object} docData - The data to be used for generating the PDF.
+ * @returns {Promise<void>} - A Promise that resolves after the PDF is generated.
+ */
+async function generateNewDocument(docData){
+  const doc = new PDFDocument()
+  log("generating document")
+  const pdfStream = fs.createWriteStream(docData.filePath)
+  
+  doc.text(docData.description)
   doc.pipe(pdfStream)
   doc.end()
   
@@ -96,24 +131,28 @@ async function generateNewDocument(filePath, description){
   })
 }
 
-async function populateDocData(category){
-  const storageDir = getStorageDir(category)
-  const nextRomanNumeral = generateNextRomanNumeral(storageDir)
-  // this is going to give me issues - maybe parse and drop up to final dir (eg /SD)?
-  // feels lazy but ternary  for now
-  const fileName = `${category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
-  const filePath = path.join(storageDir, fileName)
-  const description = `${category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
-  
-  return { fileName, filePath, description}
-}
 
+
+/**
+ * Name: injectDocument
+ * Desc: Injects a document into the database.
+ * @param {Object} docData - The data of the document to be injected.
+ * @returns {Promise<Document>} - A Promise that resolves with the injected Document object.
+ */
 async function injectDocument(docData){
+  log("injecting document into db")
   try{
     // instead of passing in multiple args I decided to encapsulate into an obj
     const {title, description, category, fileName} = docData
-    const storageCategory = getStorageDir(category) // again, going to need to drop up to dir (eg /SIG)
+    const storageCategory = getStorageDir(docData.category)
     
+    // debug
+    log("data to be injected:")
+    log(`Title: ${title}`)
+    log(`Description: ${description}`)
+    log(`Category: ${category}`)
+    log(`FileName: ${fileName}`)
+
     const doc = new Document({
       title: title,
       description: description,
@@ -122,30 +161,24 @@ async function injectDocument(docData){
     })
     
     await doc.save()
-    console.log(`Document ${doc.title} saved successfully`)
+    log(`Document ${doc.title} saved successfully`)
     return doc
   }catch (e){
     console.error(`Error saving document!!! ${e}`)
   }
 }
 
-function getStorageDir(category) {
-  let baseDir = ''
-  switch (category) {
-    case 'supporting documents':
-      baseDir = '../../Docs/SD'
-      break
-    case 'signatures':
-      baseDir = '../../Docs/SIG'
-      break
-    default:
-      baseDir = '../../Docs/SD' // Default to SD
-      break
-  }
-  return path.join(__dirname, baseDir)
-}
 
-// read and return csv data | going to have to invert the slashes for logic purposes
+
+
+/**
+ * Name: readCsv
+ * Desc: Reads and returns CSV data for a specific category.
+ * @param {string} csvFilePath - The path to the CSV file.
+ * @param {string} baseDir - The base directory path.
+ * @param {string} category - The category to filter CSV data for.
+ * @returns {Promise<Array>} - A Promise that resolves with an array of CSV data rows.
+ */
 function readCsv(csvFilePath, baseDir, category){
   return new Promise((resolve, reject) => {
     const results = []
@@ -155,7 +188,6 @@ function readCsv(csvFilePath, baseDir, category){
       if (data.Category === category) {
         const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
         const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
-        
         results.push({ ...data, fullPath, relativePath })
       }
     })
@@ -164,13 +196,28 @@ function readCsv(csvFilePath, baseDir, category){
   })
 }
 
+
+
+/**
+ * Name: writeCsv
+ * Desc: Writes document data to a CSV file.
+ * @param {string} csvFilePath - The path to the CSV file.
+ * @param {Document} document - The Document object to write to the CSV.
+ * @returns {Promise<void>} - A Promise that resolves after writing to the CSV.
+ */
 async function writeCsv(csvFilePath, document){
+  log(" writing to csv ")
   try{
-    const docData = `${document.title}, ${document.description}, ${document.category}, ${document.fileUrl}`
-    await fs.promises.appendFile(csvFilePath, docData)
+    const docData = `${document.title}, ${document.description}, ${document.category}, ${document.fileUrl}\n`
     
-    console.log('CSV Updated!')
+    // handle initial line break
+    const isEmpty = !(await fs.promises.stat(csvFilePath).size > 0)
+    const dataToAppend = isEmpty ?docData :`\n${docData}`
+    
+    await fs.promises.appendFile(csvFilePath, dataToAppend)
+    
   }catch(e){
+    log("ERROR IN WRITE")
     console.error(`Error updating CSV: ${e}`)
   }
 }
@@ -178,7 +225,6 @@ async function writeCsv(csvFilePath, document){
 
 
 module.exports = {
-  //parseCsvAndSeedDocuments: parseAndSeed,
   createAndStoreDocument: createAndStoreDocument,
   readCsv: readCsv,
   writeCsv: writeCsv,

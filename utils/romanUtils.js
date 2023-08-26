@@ -1,4 +1,6 @@
 
+const fs = require('fs')
+const romanize = require('romanize')
 function romanToNumeric(romanToConvert) {
     const romanValues = {
       I: 1,
@@ -28,16 +30,16 @@ function romanToNumeric(romanToConvert) {
         i++
       }
     }
-
     return numericValue
 }
-function getHighestRoman(directoryPath) {
+function getHighestRoman(directoryPath, prefix) {
 // read dir using node built in file system's readdirSync. This blocks code from running 
 // until all contents are read and processed
-const currentNumerals = fs.readdirSync(directoryPath)
-    .filter((fileName) => fileName.startsWith('SD-'))
+  const currentFiles = fs.readdirSync(directoryPath)
+  const currentNumerals = currentFiles
+    .filter((fileName) => fileName.startsWith(prefix))
     .map((fileName) => { // process array
-    const match = fileName.match(/SD-(.*?).pdf/) // regex (regular expression) pattern to match filenames
+    const match = fileName.match(new RegExp(`${prefix}-(.?).pdf`)) // regex (regular expression) pattern to match filenames
     return match ? match[1] : null // match attempts to match regex pattern
     })
     .filter((numeral) => numeral !== null)
@@ -45,23 +47,24 @@ const currentNumerals = fs.readdirSync(directoryPath)
     return { numeral,
     numericValue: romanToNumeric(numeral)}
     })
-if (currentNumerals.length === 0) {
-    return 'VIII' // Start from VIII if no existing files
+  if (currentNumerals.length === 0) {
+      return 'VIII' // Start from VIII if no existing files
+  }
+
+  console.log('Current Numerals:', currentNumerals)
+  const highestNumeral = currentNumerals.
+      sort((a,b) => b.numericValue - a.numericValue)[0].numeral // was trying to sort strings lol
+  return highestNumeral // Return the highest numeral as-is
 }
-console.log('Current Numerals:', currentNumerals)
-const highestNumeral = currentNumerals.
-    sort((a,b) => b.numericValue - a.numericValue)[0].numeral // was trying to sort strings lol
-return highestNumeral // Return the highest numeral as-is
-}
-function generateNextRomanNumeral(directoryPath){
-    const highestNumeral = getHighestRoman(directoryPath)
+
+
+function generateNextRomanNumeral(directoryPath, prefix){
+    const highestNumeral = getHighestRoman(directoryPath, prefix)
     const numericValue = romanToNumeric(highestNumeral)
     const nextNumericValue = numericValue + 1
     const nextRomanNumeral = romanize(nextNumericValue)
     return nextRomanNumeral
 }
 module.exports = {
-    romanToNumeric,
-    getHighestRoman,
     generateNextRomanNumeral
   }
