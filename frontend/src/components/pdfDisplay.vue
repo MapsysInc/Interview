@@ -8,7 +8,9 @@ div.pdf-display
     ul
         li(v-for="document in documents" :key="document._id")
             a(:href="document.fileUrl" target="_blank")
-                p {{ document.title }}
+                div 
+                  h3 {{ document.title }}
+                    p {{ document.description }}
 </template>
     
 <script>

@@ -37,7 +37,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
 router.post('/create', async (req, res) => {
   try {
     const inputDoc = {
-      title: 'sample.pdf', // TODO set props to user input values & defaults
+      title: '', // TODO set props to user input values & defaults
       description: 'supporting doc',
       category: 'supporting documents' // TODO refactor category data type
     }
@@ -89,9 +89,9 @@ router.get('/all', async (req, res) => {
     const allCsvData = [...sdCsvData, ...sigCsvData]
     const documentPaths = allCsvData.map((row) => row.relativePath)
     const matchingDocuments = await Document.find({ fileUrl: { $in: documentPaths } })
-    log(`matching documents: ${matchingDocuments}`)
+
     // return data
-    // console.log('Matching Documents:', matchingDocuments) // debug
+    console.log('Matching Documents:', matchingDocuments) // debug
     res.json(matchingDocuments)
 
   }catch (e){

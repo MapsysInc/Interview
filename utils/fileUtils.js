@@ -174,20 +174,9 @@ async function injectDocument(docData){
   try{
     // instead of passing in multiple args I decided to encapsulate into an obj
     const {title, description, category, fileName} = docData
-    // const storageCategory = getStorageDir(category)
     const prefix = getPrefix(docData)
-    // storageCategory.replace(``)
-    // const fileUrl = `${storageCategory}/${fileName}`
     const fileUrl = `/Docs/${prefix}/${fileName}`
-    // const relativePath = `/Docs/${storageCategory}/${fileName}`
-    // debug
-    log("data to be injected:")
-    // log(`Title: ${title}`)
-    // log(`Description: ${description}`)
-    // log(`Category: ${category}`)
-    // log(`FileName: ${fileName}`)
-    log(`fileUrl: ${fileUrl}`)
-    
+
     const doc = new Document({
       title: title,
       description: description,
@@ -243,7 +232,10 @@ function readCsv(csvFilePath, baseDir, category){
 async function writeCsv(csvFilePath, document){
   log(" writing to csv ")
   try{
-    const docData = `${document.description}, ${document.fileUrl.replace(/\//g, '\\')}, ${document.category}`
+    const removedSlashUrl = document.fileUrl.replace(/^\//, '')
+    let category = document.category.toLowerCase() // formatting
+    category = category === 'supporting documents' ? 'Supporting Documents' : category
+    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}`
     
     const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
     const dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
