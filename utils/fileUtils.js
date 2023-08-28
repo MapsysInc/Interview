@@ -2,7 +2,7 @@ const csv = require('csv-parser')
 const fs = require('fs')
 const path = require('path')
 const PDFDocument = require('pdfkit') // initialize pdf construction
-const { generateNextRomanNumeral } = require('../utils/romanUtils')
+const { generateNextRomanNumeral, romanToNumeric} = require('../utils/romanUtils')
 const { log } = require('../utils/generalUtils')
 const Document = require('../backend/models/documentModel')
 require('dotenv').config()
@@ -19,19 +19,15 @@ async function createAndStoreDocument(inputDoc) {
   try {
     log("creating and storing document")
     const docData = await populateDocData(inputDoc) // generate doc data
-    log("document data populated")
     const filePath = await generateNewDocument(docData) // generate new doc with doc data
-    log("document generated")
     const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
       description: docData.description,
       category: inputDoc.category,
       fileName: docData.fileName,
     })
-    log("document injected into db")
     const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
     await writeCsv(csvFilePath, storedDocument) // update csv
-    log("csv updated")
     
   } catch (error) {
     console.error(`Error creating and storing document: ${error}`)
@@ -48,20 +44,24 @@ async function createAndStoreDocument(inputDoc) {
  * TODO encapsulate ternary logic
  */
 async function populateDocData(inputDoc){
-  log("populating document data")
+  try{
+    log("populating document data")
 
   // feels lazy but ternary  for now
-  const fileName = getFileName(inputDoc)
-  log(`file name established: ${fileName}`)
+  const nameAndDescription = setNameAndDescription(inputDoc)
+  log(`file name established: ${nameAndDescription.fileName}`)
   
   // const filePath = path.join(storageDir, fileName)
-  const filePath = path.join(getStorageDir(inputDoc), fileName) // sidestep scoping issue
+  const filePath = path.join(getStorageDir(inputDoc.category), nameAndDescription.fileName) // sidestep scoping issue
   log(`file path established: ${filePath}`)
   
-  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
-  log(`default description: ${description}`)
-  
-  return { fileName, filePath, description }
+  return { 
+    fileName: nameAndDescription.fileName, 
+    description: nameAndDescription.description,
+    filePath}
+  }catch(e){
+    log(`Error in populateDocData(): ${e}`)
+  }
 }
 
 
@@ -72,19 +72,23 @@ async function populateDocData(inputDoc){
  * @param {object} inputDoc - 
  * @returns {substr} prefix - 
  */
-function getFileName(inputDoc){
-    
+function setNameAndDescription(inputDoc){
   const storageDir = getStorageDir(inputDoc.category)
   log(`storage directory established: ${storageDir}`)
   
   const prefix = getPrefix(inputDoc) // hmm, calling before needed data is populated
-  log(`prefix value: ${prefix}`)
+  log(`prefix value established: ${prefix}`)
   
   const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
   log(`doc roman numeral established: ${nextRomanNumeral}`)
   
   const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
-  return fileName
+  log(`fileName: ${fileName}`)
+  
+  descriptionID = romanToNumeric(nextRomanNumeral)
+  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${descriptionID}`
+  log(`default description: ${description}`)
+  return {fileName, description}
 }
 
 
@@ -93,16 +97,18 @@ function getFileName(inputDoc){
  * Name: getPrefix
  * Desc: 
  * @param {object} inputDoc - 
- * @returns {substr} prefix - 
+ * @returns {string} prefix - 
  */
 function getPrefix(inputDoc){
-  let baseDir = getStorageDir(inputDoc.category)
-  // need to return full filepath to extract the prefix
-  const fullPath = path.join(baseDir, inputDoc.filePath).replace(/\\/g, '/') // maybe i could instead grab prefix from category?
-  const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
-  const prefix = relativePath.substr(0,3)
+  let prefix = ''
+  let category = inputDoc.category
+  if (category === 'supporting documents'){
+    prefix = 'SD'
+  }
+  else if (category === 'signatures'){
+    prefix = 'SIG'
+  }
   
-  log(`prefix is ${prefix}`)
   return prefix
 }
 
@@ -168,20 +174,25 @@ async function injectDocument(docData){
   try{
     // instead of passing in multiple args I decided to encapsulate into an obj
     const {title, description, category, fileName} = docData
-    const storageCategory = getStorageDir(docData.category)
-    
+    // const storageCategory = getStorageDir(category)
+    const prefix = getPrefix(docData)
+    // storageCategory.replace(``)
+    // const fileUrl = `${storageCategory}/${fileName}`
+    const fileUrl = `/Docs/${prefix}/${fileName}`
+    // const relativePath = `/Docs/${storageCategory}/${fileName}`
     // debug
     log("data to be injected:")
-    log(`Title: ${title}`)
-    log(`Description: ${description}`)
-    log(`Category: ${category}`)
-    log(`FileName: ${fileName}`)
-
+    // log(`Title: ${title}`)
+    // log(`Description: ${description}`)
+    // log(`Category: ${category}`)
+    // log(`FileName: ${fileName}`)
+    log(`fileUrl: ${fileUrl}`)
+    
     const doc = new Document({
       title: title,
       description: description,
       category: category,
-      fileUrl:`Docs/${storageCategory}/${fileName}`
+      fileUrl: fileUrl
     })
     
     await doc.save()
@@ -209,7 +220,7 @@ function readCsv(csvFilePath, baseDir, category){
     fs.createReadStream(csvFilePath)
     .pipe(csv())
     .on('data', (data) => {
-      if (data.Category === category) {
+      if (data.Category.toLowerCase() === category.toLowerCase()) {
         const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
         const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
         results.push({ ...data, fullPath, relativePath })
@@ -232,11 +243,10 @@ function readCsv(csvFilePath, baseDir, category){
 async function writeCsv(csvFilePath, document){
   log(" writing to csv ")
   try{
-    const docData = `${document.title}, ${document.description}, ${document.category}, ${document.fileUrl}\n`
+    const docData = `${document.description}, ${document.fileUrl.replace(/\//g, '\\')}, ${document.category}`
     
-    // handle initial line break
-    const isEmpty = !(await fs.promises.stat(csvFilePath).size > 0)
-    const dataToAppend = isEmpty ?docData :`\n${docData}`
+    const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
+    const dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
     
     await fs.promises.appendFile(csvFilePath, dataToAppend)
     

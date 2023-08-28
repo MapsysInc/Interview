@@ -1,7 +1,7 @@
 
 const fs = require('fs')
 const romanize = require('romanize')
-
+const { log } = require('../utils/generalUtils')
 
 
 /**
@@ -53,11 +53,12 @@ function romanToNumeric(romanToConvert) {
 function getHighestRoman(directoryPath, prefix) {
 // read dir using node built in file system's readdirSync
   const currentFiles = fs.readdirSync(directoryPath)
+  // log(`directory path in highest roman: ${directoryPath}`)
   
   const currentNumerals = currentFiles // get current numerals in dir
     .filter((fileName) => fileName.startsWith(prefix))
     .map((fileName) => { // process array
-    const match = fileName.match(new RegExp(`${prefix}-(.?).pdf`)) // regex (regular expression) pattern to match filenames
+    const match = fileName.match(new RegExp(`${prefix}-(.+)\\.pdf`)) // regex (regular expression) pattern to match filenames
     return match ? match[1] : null // match attempts to match regex pattern
     })
     .filter((numeral) => numeral !== null)
@@ -69,9 +70,9 @@ function getHighestRoman(directoryPath, prefix) {
       return 'I' // Start from I if no existing files
   }
 
-  console.log('Current Numerals:', currentNumerals)
+  // console.log('Current Numerals:', currentNumerals)
   const highestNumeral = currentNumerals
-      sort((a,b) => b.numericValue - a.numericValue)[0].numeral
+      .sort((a,b) => b.numericValue - a.numericValue)[0].numeral
   return highestNumeral // Return the highest numeral as-is
 }
 
@@ -94,5 +95,6 @@ function generateNextRomanNumeral(directoryPath, prefix){
 
 
 module.exports = {
-    generateNextRomanNumeral
+    generateNextRomanNumeral,
+    romanToNumeric
   }

@@ -29,8 +29,8 @@ const docSchema = new mongoose.Schema({
 // ONLY WHEN property is accessed
 docSchema.virtual('fileUrl').get(function() {
     // Define the base directory based on the category - ternary for now?
-    const baseDir = this.category === 'signatures' ? 'SIG' : 'SD'
-    return `/Docs/${baseDir}/${this.title}`
+    let dir = this.category === 'signatures' ? 'SIG' : 'SD'
+    return `/Docs/${dir}/${this.fileName.replace(/\\/g, '/')}`
   })
 
 // compile model

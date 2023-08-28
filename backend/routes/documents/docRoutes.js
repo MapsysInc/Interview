@@ -81,7 +81,7 @@ router.get('/all', async (req, res) => {
     // read csv
     const baseDir = path.join(__dirname, '../../../Docs') // establish base dir
     const csvFilePath = path.join(baseDir, 'Documents.csv') // set csv file path
-    const sdCsvData = await readCsv(csvFilePath, baseDir, 'Supporting Documents') // pass category (should this not be dynamically passed in?)
+    const sdCsvData = await readCsv(csvFilePath, baseDir, 'supporting documents') // pass category (should this not be dynamically passed in?)
     const sigCsvData = await readCsv(csvFilePath, baseDir,'signatures') // is base dir needed?
     
     // query for each row
@@ -89,7 +89,7 @@ router.get('/all', async (req, res) => {
     const allCsvData = [...sdCsvData, ...sigCsvData]
     const documentPaths = allCsvData.map((row) => row.relativePath)
     const matchingDocuments = await Document.find({ fileUrl: { $in: documentPaths } })
-    
+    log(`matching documents: ${matchingDocuments}`)
     // return data
     // console.log('Matching Documents:', matchingDocuments) // debug
     res.json(matchingDocuments)
