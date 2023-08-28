@@ -1,6 +1,15 @@
 
 const fs = require('fs')
 const romanize = require('romanize')
+
+
+
+/**
+ * Name: romanToNumeric
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
 function romanToNumeric(romanToConvert) {
     const romanValues = {
       I: 1,
@@ -32,11 +41,20 @@ function romanToNumeric(romanToConvert) {
     }
     return numericValue
 }
+
+
+
+/**
+ * Name: getHighestRoman
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
 function getHighestRoman(directoryPath, prefix) {
-// read dir using node built in file system's readdirSync. This blocks code from running 
-// until all contents are read and processed
+// read dir using node built in file system's readdirSync
   const currentFiles = fs.readdirSync(directoryPath)
-  const currentNumerals = currentFiles
+  
+  const currentNumerals = currentFiles // get current numerals in dir
     .filter((fileName) => fileName.startsWith(prefix))
     .map((fileName) => { // process array
     const match = fileName.match(new RegExp(`${prefix}-(.?).pdf`)) // regex (regular expression) pattern to match filenames
@@ -48,16 +66,23 @@ function getHighestRoman(directoryPath, prefix) {
     numericValue: romanToNumeric(numeral)}
     })
   if (currentNumerals.length === 0) {
-      return 'VIII' // Start from VIII if no existing files
+      return 'I' // Start from I if no existing files
   }
 
   console.log('Current Numerals:', currentNumerals)
   const highestNumeral = currentNumerals
-      sort((a,b) => b.numericValue - a.numericValue)[0].numeral // was trying to sort strings lol
+      sort((a,b) => b.numericValue - a.numericValue)[0].numeral
   return highestNumeral // Return the highest numeral as-is
 }
 
 
+
+/**
+ * Name: generateNextRomanNumeral
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
 function generateNextRomanNumeral(directoryPath, prefix){
     const highestNumeral = getHighestRoman(directoryPath, prefix)
     const numericValue = romanToNumeric(highestNumeral)
@@ -65,6 +90,9 @@ function generateNextRomanNumeral(directoryPath, prefix){
     const nextRomanNumeral = romanize(nextNumericValue)
     return nextRomanNumeral
 }
+
+
+
 module.exports = {
     generateNextRomanNumeral
   }

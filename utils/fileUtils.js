@@ -49,35 +49,59 @@ async function createAndStoreDocument(inputDoc) {
  */
 async function populateDocData(inputDoc){
   log("populating document data")
-  const storageDir = getStorageDir(inputDoc.category)
-  log("directory established")
-  const prefix = getPrefixForDocParse(inputDoc) // hmm, calling before needed data is populated
-  const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
+
   // feels lazy but ternary  for now
-  const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
-  const filePath = path.join(storageDir, fileName)
-  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
+  const fileName = getFileName(inputDoc)
+  log(`file name established: ${fileName}`)
   
-  return { fileName, filePath, description}
+  // const filePath = path.join(storageDir, fileName)
+  const filePath = path.join(getStorageDir(inputDoc), fileName) // sidestep scoping issue
+  log(`file path established: ${filePath}`)
+  
+  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
+  log(`default description: ${description}`)
+  
+  return { fileName, filePath, description }
 }
 
 
 
 /**
- * Name: getPrefixForDocParse
+ * Name: getFileName
  * Desc: 
  * @param {object} inputDoc - 
  * @returns {substr} prefix - 
  */
-function getPrefixForDocParse(inputDoc){
+function getFileName(inputDoc){
+    
+  const storageDir = getStorageDir(inputDoc.category)
+  log(`storage directory established: ${storageDir}`)
+  
+  const prefix = getPrefix(inputDoc) // hmm, calling before needed data is populated
+  log(`prefix value: ${prefix}`)
+  
+  const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
+  log(`doc roman numeral established: ${nextRomanNumeral}`)
+  
+  const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
+  return fileName
+}
+
+
+
+/**
+ * Name: getPrefix
+ * Desc: 
+ * @param {object} inputDoc - 
+ * @returns {substr} prefix - 
+ */
+function getPrefix(inputDoc){
   let baseDir = getStorageDir(inputDoc.category)
-  // const filePath = baseDir
-  // log(`FAILURE AT: FILE PATH`)
-  const fullPath = path.join(baseDir, inputDoc.filePath).replace(/\\/g, '/')
-  // log(`FAILURE AT: FULL PATH`)
+  // need to return full filepath to extract the prefix
+  const fullPath = path.join(baseDir, inputDoc.filePath).replace(/\\/g, '/') // maybe i could instead grab prefix from category?
   const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
-  // log(`FAILURE AT: RELATIVE PATH`)
   const prefix = relativePath.substr(0,3)
+  
   log(`prefix is ${prefix}`)
   return prefix
 }
@@ -91,7 +115,7 @@ function getPrefixForDocParse(inputDoc){
  * @returns {string} - The storage directory path.
  */
 function getStorageDir(category) {
-  log("establishing directory")
+  // log("establishing directory")
   let baseDir = ''
   switch (category) {
     case 'supporting documents':
