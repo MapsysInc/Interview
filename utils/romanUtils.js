@@ -52,7 +52,7 @@ function getHighestRoman(directoryPath, prefix) {
   }
 
   console.log('Current Numerals:', currentNumerals)
-  const highestNumeral = currentNumerals.
+  const highestNumeral = currentNumerals
       sort((a,b) => b.numericValue - a.numericValue)[0].numeral // was trying to sort strings lol
   return highestNumeral // Return the highest numeral as-is
 }

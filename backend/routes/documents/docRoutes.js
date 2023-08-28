@@ -33,12 +33,13 @@ router.post('/upload', upload.single('file'), (req, res) => {
 
 
 // route to create and store pdf
+// ERROR ---- THERE'S AN ISSUE WITH THE RETURN OF IX EVERY TIME NO MATTER THE COUNT
 router.post('/create', async (req, res) => {
   try {
     const inputDoc = {
       title: 'sample.pdf', // TODO set props to user input values & defaults
-      description: 'Signature',
-      category: 'signatures'
+      description: 'supporting doc',
+      category: 'supporting documents' // TODO refactor category data type
     }
     
     const result = await createAndStoreDocument(inputDoc) // Call the utility function

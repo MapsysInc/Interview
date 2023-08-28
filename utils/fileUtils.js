@@ -51,7 +51,7 @@ async function populateDocData(inputDoc){
   log("populating document data")
   const storageDir = getStorageDir(inputDoc.category)
   log("directory established")
-  const prefix = getPrefixForDocParse(inputDoc)
+  const prefix = getPrefixForDocParse(inputDoc) // hmm, calling before needed data is populated
   const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
   // feels lazy but ternary  for now
   const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
@@ -59,6 +59,27 @@ async function populateDocData(inputDoc){
   const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${nextRomanNumeral}`
   
   return { fileName, filePath, description}
+}
+
+
+
+/**
+ * Name: getPrefixForDocParse
+ * Desc: 
+ * @param {object} inputDoc - 
+ * @returns {substr} prefix - 
+ */
+function getPrefixForDocParse(inputDoc){
+  let baseDir = getStorageDir(inputDoc.category)
+  // const filePath = baseDir
+  // log(`FAILURE AT: FILE PATH`)
+  const fullPath = path.join(baseDir, inputDoc.filePath).replace(/\\/g, '/')
+  // log(`FAILURE AT: FULL PATH`)
+  const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
+  // log(`FAILURE AT: RELATIVE PATH`)
+  const prefix = relativePath.substr(0,3)
+  log(`prefix is ${prefix}`)
+  return prefix
 }
 
 
@@ -85,27 +106,6 @@ function getStorageDir(category) {
   }
   log(`directory established: ${baseDir}`)
   return path.join(__dirname, baseDir)
-}
-
-
-
-/**
- * Name: getPrefixForDocParse
- * Desc: 
- * @param {object} inputDoc - 
- * @returns {substr} prefix - 
- */
-function getPrefixForDocParse(inputDoc){
-  let baseDir = getStorageDir(inputDoc.category)
-  const filePath = baseDir
-  // log(`FAILURE AT: FILE PATH`)
-  const fullPath = path.join(baseDir, filePath).replace(/\\/g, '/')
-  // log(`FAILURE AT: FULL PATH`)
-  const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
-  // log(`FAILURE AT: RELATIVE PATH`)
-  const prefix = relativePath.substr(0,3)
-  log(`prefix is ${prefix}`)
-  return prefix
 }
 
 

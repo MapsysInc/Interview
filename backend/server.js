@@ -25,7 +25,7 @@ app.use(morgan('tiny')) // execute morgan
 app.use(cookieParser()) // execute cookieParser
 
 // set connection vars
-const url = process.env.DB_URL || 'mongodb://localhost:27017/test'
+const url = process.env.DB_URL || 'mongodb://localhost:27017/pdfStorage'
 
 // import routes
 const docRoutes = require('./routes/documents/docRoutes.js')
@@ -33,7 +33,8 @@ const docRoutes = require('./routes/documents/docRoutes.js')
 /**
  * CONNECT TO MONGO DB via MONGOOSE
 */
-mongoose.connect(url)
+//mongoose.connect(url)
+mongoose.connect('mongodb://localhost:27017/pdfStorage')
   .then(()=>{
     console.log("connection is now open")
     // start express server & listen for requests
