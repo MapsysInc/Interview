@@ -4,24 +4,22 @@
 -->
 <template lang="pug">
 div
-    h1.text-bg-info Landing Page!
+    h1 Welcome
 </template>
     
 <script>
-
-import { mapState, mapActions } from "vuex";
 
 export default {
     name: "Landing",
     props: {},
     computed:{
-        ...mapState(['documents'])
+      
     },
     components:{
-        PdfDisplay,
+        
     },
     methods:{
-        ...mapActions(['fetchAllDocuments'])
+        
     },
     data(){ //store & manage reactive data
         return{
@@ -29,7 +27,7 @@ export default {
         }
     },
     async created(){
-        await this.fetchAllDocuments()
+        
     }
 }
 </script>

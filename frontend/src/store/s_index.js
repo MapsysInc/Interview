@@ -27,6 +27,21 @@ export default createStore({
         commit('setDocuments',[]) // clear array
       }
     },
+    
+    
+    
+    async deleteDocument({commit}, documentId){
+      try{
+        const response = await axios.delete(`/docs/delete/${documentId}`)
+        commit('deleteDocument', documentId)
+      }catch(e){
+        console.log(`error in delete documents ${e}`)
+        commit('setDocuments)',[])
+      }
+    },
+    
+    
+    
     // actions cont
   },
   modules: {
