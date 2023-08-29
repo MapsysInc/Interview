@@ -1,9 +1,15 @@
 <template lang="pug">
-nav
-  <router-link to="/">Home</router-link>
-  <router-view/>
+NavBar
+<router-view/>
 </template>
-
+<script>
+import NavBar from '../src/components/NavBar.vue'
+export default {
+  components:{
+    NavBar
+  }
+}
+</script>
 <style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

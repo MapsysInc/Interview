@@ -4,12 +4,11 @@
 -->
 <template lang="pug">
 div
-    h2.navbar-header Ready To Rock!
-    PdfDisplay(:documents="documents")
+    h1.text-bg-info Landing Page!
 </template>
     
 <script>
-import PdfDisplay from "@/components/pdfDisplay.vue"
+
 import { mapState, mapActions } from "vuex";
 
 export default {

@@ -25,6 +25,12 @@ const upload = multer({ storage: storage })
 
 
 // Create an API endpoint for file uploads
+/**
+ * Name: 
+ * Desc: 
+ * @param {} [variable_name] - The document object with properties like category, title, etc.
+ * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ */
 router.post('/upload', upload.single('file'), (req, res) => {
  // TODO
  return true
@@ -33,7 +39,12 @@ router.post('/upload', upload.single('file'), (req, res) => {
 
 
 // route to create and store pdf
-// ERROR ---- THERE'S AN ISSUE WITH THE RETURN OF IX EVERY TIME NO MATTER THE COUNT
+/**
+ * Name: 
+ * Desc:
+ * @param {} [variable_name] - The document object with properties like category, title, etc.
+ * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ */
 router.post('/create', async (req, res) => {
   try {
     const inputDoc = {
@@ -74,8 +85,12 @@ router.post('/create', async (req, res) => {
 //   next()
 // })
 
-// route to display all docs within csv
-// TODO: TOLOWER
+/**
+ * Name: 
+ * Desc:
+ * @param {} [variable_name] - The document object with properties like category, title, etc.
+ * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ */
 router.get('/all', async (req, res) => {
   try{
     // read csv
@@ -84,14 +99,12 @@ router.get('/all', async (req, res) => {
     const sdCsvData = await readCsv(csvFilePath, baseDir, 'supporting documents') // pass category (should this not be dynamically passed in?)
     const sigCsvData = await readCsv(csvFilePath, baseDir,'signatures') // is base dir needed?
     
-    // query for each row
-    // Concatenate relative paths for both types of documents
     const allCsvData = [...sdCsvData, ...sigCsvData]
     const documentPaths = allCsvData.map((row) => row.relativePath)
     const matchingDocuments = await Document.find({ fileUrl: { $in: documentPaths } })
 
     // return data
-    console.log('Matching Documents:', matchingDocuments) // debug
+    // console.log('Matching Documents:', matchingDocuments) // debug
     res.json(matchingDocuments)
 
   }catch (e){
@@ -99,5 +112,33 @@ router.get('/all', async (req, res) => {
     res.status(500).json({ error: 'Error reading csv file'})
   }
 })
+
+
+
+/**
+ * Name: 
+ * Desc:
+ * @param {} [variable_name] - The document object with properties like category, title, etc.
+ * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ */
+router.delete('/delete/:id', async (req, res) =>{
+  try{
+    const docToDelete = await Document.findByIdAndDelete(req.params.id)
+    if(!docToDelete){
+      return res.status(404).json({
+        message: `Document not found`
+      })
+    }
+    return res.json({
+      message: `Docuemnt deleted`
+    })
+  }catch(e){
+    log(`Error deleting document ${docToDelete}`)
+    return res.status(500).json({
+      error: 'Error deleting document'
+    })
+  }
+})
+
 
 module.exports = router // Export the router instance

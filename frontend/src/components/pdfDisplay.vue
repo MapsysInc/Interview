@@ -4,19 +4,22 @@
 -->
 <template lang="pug">
 div.pdf-display
-    h3 PDF DISPLAY 
+    h3.form-label PDF DISPLAY
+    button(type="button" class="btn btn-success") Create PDF
     ul
-        li(v-for="document in documents" :key="document._id")
-            a(:href="document.fileUrl" target="_blank")
+        li(v-for="document in documents" :key="document.id")
+            a(:href="document._id" target="_blank")
                 div 
                   h3 {{ document.title }}
                     p {{ document.description }}
+                button(type="button" class="btn btn-secondary") Update
+                button(type="button" class="btn btn-danger") Delete
 </template>
     
 <script>
 import {mapState} from 'vuex'
 export default {
-  name: "pdfDisplay",
+  name: "PdfDisplay",
   props: {},
   computed:{
     ...mapState(['documents'])
