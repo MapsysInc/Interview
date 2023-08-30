@@ -7,30 +7,7 @@ const { log } = require('../utils/generalUtils')
 const Document = require('../backend/models/documentModel')
 require('dotenv').config()
 
-/**
- * Name: 
- * Desc: 
- * @param {} var - 
- * @returns {} var - 
- */
-async function createAndStoreDocument(inputDoc) {
-  try {
-    log("creating and storing document")
-    const docData = await populateDocData(inputDoc) // generate doc data
-    const filePath = await generateNewDocument(docData) // generate new doc with doc data
-    const storedDocument = await injectDocument({ // store new doc in db
-      title: docData.fileName,
-      description: docData.description,
-      category: inputDoc.category,
-      fileName: docData.fileName,
-    })
-    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
-    await writeCsv(csvFilePath, storedDocument) // update csv
-    
-  } catch (error) {
-    console.error(`Error creating and storing document: ${error}`)
-  }
-}
+
 
 /**
  * Name: createAndStoreDocument
@@ -42,7 +19,7 @@ async function createAndStoreDocument(inputDoc) {
   try {
     log("creating and storing document")
     const docData = await populateDocData(inputDoc) // generate doc data
-    const filePath = await generateNewDocument(docData) // generate new doc with doc data
+    await generateNewDocument(docData) // generate new doc with doc data
     const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
       description: docData.description,
@@ -232,9 +209,10 @@ function readCsv(csvFilePath, baseDir, category){
     fs.createReadStream(csvFilePath)
     .pipe(csv())
     .on('data', (data) => {
-      if (data.Category.toLowerCase() === category.toLowerCase()) {
+      if(data.Category.toLowerCase() === category.toLowerCase()){ // i could prob encapsulte further
         const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
         const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
+        
         results.push({ ...data, fullPath, relativePath })
       }
     })
@@ -251,14 +229,16 @@ function readCsv(csvFilePath, baseDir, category){
  * @param {string} csvFilePath - The path to the CSV file.
  * @param {Document} document - The Document object to write to the CSV.
  * @returns {Promise<void>} - A Promise that resolves after writing to the CSV.
- */
+ */ 
 async function writeCsv(csvFilePath, document){
   log(" writing to csv ")
   try{
     const removedSlashUrl = document.fileUrl.replace(/^\//, '')
-    let category = document.category.toLowerCase() // formatting
-    category = category === 'supporting documents' ? 'Supporting Documents' : category
-    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}`
+    let category = document.category.toLowerCase()
+    
+    category = category === 'supporting documents' ? 'Supporting Documents' : category // set category
+    
+    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}` // 
     
     const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
     const dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
@@ -266,15 +246,75 @@ async function writeCsv(csvFilePath, document){
     await fs.promises.appendFile(csvFilePath, dataToAppend)
     
   }catch(e){
-    log("ERROR IN WRITE")
+    log("Error in write csv")
     console.error(`Error updating CSV: ${e}`)
   }
 }
 
 
 
+/**
+ * Name: writeFromData
+ * Desc: removes row in csv 
+ * @param {} var - 
+ * @param {} var -
+ * @returns {} -
+ */ 
+async function writeFromData(csvFilePath, csvData){
+  log("writeFromData() - deleting row and writing new data to csv ")
+  try {
+    const csvLines = csvData.map((row) => {
+      const path = row.Path.replace(/^\//, "")
+      let category = row.Category
+      
+      category = category === 'supporting documents' ? 'Supporting Documents' : category // set category
+      return `${row.description},${path},${category}`
+    })
+
+    // const isEmpty = await fs.promises.stat(csvFilePath).size > 0
+    // const dataToAppend = isEmpty ? csvLines.join("\n") : csvLines.join("\n")
+    const dataToWrite = csvLines.join("\n");
+    
+    await fs.promises.writeFile(csvFilePath, dataToWrite)
+    // await fs.promises.writeFile(csvFilePath, dataToAppend)
+  }catch(e){
+    log("Error re-writing csv data")
+    console.error(`Error updating CSV: ${e}`)
+    throw e
+  }
+}
+
+
+/**
+ * Name: 
+ * Desc: 
+ * @param {} var - 
+ * @returns {} var - 
+ */
+async function deleteDocFromCsv(csvFilePath, baseDir, category, docToDelete){ //  (I don't like how many args there are)
+  try {
+    const csvData = await readCsv(csvFilePath, baseDir, category)
+    
+    const updatedCsvData = csvData.filter(
+      (row) => row.fullPath !== docToDelete.fileUrl
+    )
+
+    await writeFromData(csvFilePath, updatedCsvData)
+    return updatedCsvData
+    
+  } catch (e) {
+    console.error(`Error deleting document from CSV: ${e}`)
+    throw e
+  }
+}
+
+
 module.exports = {
   createAndStoreDocument: createAndStoreDocument,
+  getStorageDir,
+  getPrefix,
   readCsv: readCsv,
   writeCsv: writeCsv,
+  deleteDocFromCsv,
+  writeFromData,
 }

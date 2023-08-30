@@ -22,7 +22,7 @@ const docSchema = new mongoose.Schema({
     },
     },
     {
-        collection:'pdfStorage'  
+        collection:'pdfStorage'
     }
 )
 

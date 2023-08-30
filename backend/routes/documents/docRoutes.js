@@ -2,9 +2,10 @@ const express = require('express')
 const multer = require('multer')
 const router = express.Router()
 const path = require('path')
-const {  createAndStoreDocument, readCsv, getStorageDir } = require('../../../utils/fileUtils.js')
+const {  createAndStoreDocument, readCsv, getStorageDir, getPrefix, deleteDocFromCsv, writeFromData} = require('../../../utils/fileUtils.js')
 const { log } = require('../../../utils/generalUtils')
 const Document = require('../../models/documentModel')
+const fs = require('fs') // file system needed to manage local documents
 
 // store generated docs
 const storage = multer.diskStorage({
@@ -123,15 +124,34 @@ router.get('/all', async (req, res) => {
  */
 router.delete('/delete/:id', async (req, res) =>{
   try{
-    const docToDelete = await Document.findByIdAndDelete(req.params.id)
+    const docToDelete = await Document.findById(req.params.id)
     if(!docToDelete){
       return res.status(404).json({
         message: `Document not found`
       })
     }
-    return res.json({
-      message: `Docuemnt deleted`
-    })
+    
+    log(`Document: ${docToDelete}`)
+    const dirCategory = getPrefix(docToDelete)
+    
+    //delete local file
+    const filePath = path.join(__dirname, `../../../Docs/${dirCategory}/${docToDelete.title}`)
+    log(`filepath: ${filePath}`)
+    log(`title: ${docToDelete.title}`)
+
+    fs.unlinkSync(filePath) // delete from local
+    
+    await Document.findByIdAndRemove(req.params.id) // delete from db
+    
+    const baseDir = path.join(__dirname, '../../../Docs') // establish base dir
+    const csvFilePath = path.join(baseDir, 'Documents.csv') // set csv file path
+    const category = docToDelete.category.toLowerCase()
+    
+    const updatedCsvData = await deleteDocFromCsv(csvFilePath, baseDir, category, docToDelete) // delete from csv
+    log(`csv updated data ${updatedCsvData}`)
+    await writeFromData(csvFilePath, updatedCsvData)
+    return res.json({ message: `Docuemnt deleted` })
+    
   }catch(e){
     log(`Error deleting document ${req.params.id}`)
     return res.status(500).json({

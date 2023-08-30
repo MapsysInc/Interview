@@ -25,3 +25,6 @@ pnpm-debug.log*
 *.sw?
 Docs/dev/pdfKit.md
 noteToSelf.md
+Docs/
+Docs/SD/SD-XIII.pdf
+Docs/SD/SD-X.pdf

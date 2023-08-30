@@ -43,7 +43,7 @@ export default createStore({
         }
       } catch(e){
         console.log(`error in delete documents ${e}`)
-        commit('deleteDocument)',[])
+        commit('deleteDocument', documentId)
       }
     },
     
