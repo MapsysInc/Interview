@@ -10,16 +10,16 @@ div
           :key="document.id" 
           :class="{ 'list-group-item': true, 'active': isActive(document) }"
         )
-          a(:href="document.id" target="#")
+          a(:href="document._id" target="#")
           div.text-center.row
               div.d-flex.align-items.justify-content-between.col
-                    a(:href="document.id" target="#")
+                    a(:href="document._id" target="#")
                         button.btn.btn-primary.btn-lg.mb-auto {{ document.title }}
                         //- p.fs-2 Description
                         p.text-wrap.fs-4 {{ document.description }}
               div.col
                   
-                  button.btn.btn-outline-danger.d-flex.flex-column(type="button" @click="deleteDocument(document.id)") Delete
+                  button.btn.btn-outline-danger.d-flex.flex-column(type="button" @click="confirmDelete(document._id, document.title)") Delete
                   //- input.form-check-input#checkBoxDefault(type="checkbox")
                   //- label.form-check-label(for="checkBoxDefault") Select
 </template>
@@ -42,6 +42,15 @@ export default {
     isActive(document){
         return document && document.id === this.selectedId
     },
+    async confirmDelete(documentId, documentTitle){
+      console.log('documentId:', documentId);
+  console.log('documentTitle:', documentTitle);
+
+      const willDelete = window.confirm(`Confirm you would like to delete ${documentTitle}` )
+      if(willDelete){
+        await this.deleteDocument(documentId)
+      }
+    }
     
   }
 }

@@ -1,4 +1,5 @@
 import { createStore } from 'vuex'
+const { log } = require('../../../utils/generalUtils')
 const axios = require('axios')
 axios.defaults.baseURL = 'http://localhost:3000/'
 
@@ -14,7 +15,11 @@ export default createStore({
     // mutations
     setDocuments(state, documents){
       state.documents = documents
-    }
+    },
+    
+    deleteDocument(state, documentId) {
+      state.documents = state.documents.filter(document => document.id !== documentId)
+    },
   },
   actions: {
     
@@ -31,16 +36,16 @@ export default createStore({
     
     
     async deleteDocument({commit}, documentId){
-      try{
-        const response = await axios.delete(`/docs/delete/${documentId}`)
-        commit('deleteDocument', documentId)
-      }catch(e){
+      try {
+        const response = await axios.delete(`/docs/delete/${documentId}`);
+        if (response.data.message === 'Document deleted') {
+          commit('deleteDocument', documentId); // Update Vuex state
+        }
+      } catch(e){
         console.log(`error in delete documents ${e}`)
-        commit('setDocuments)',[])
+        commit('deleteDocument)',[])
       }
     },
-    
-    
     
     // actions cont
   },

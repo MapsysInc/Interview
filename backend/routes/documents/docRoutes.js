@@ -88,8 +88,8 @@ router.post('/create', async (req, res) => {
 /**
  * Name: 
  * Desc:
- * @param {} [variable_name] - The document object with properties like category, title, etc.
- * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ * @param {} [variable_name] - 
+ * @returns {} [return_name] - 
  */
 router.get('/all', async (req, res) => {
   try{
@@ -133,7 +133,7 @@ router.delete('/delete/:id', async (req, res) =>{
       message: `Docuemnt deleted`
     })
   }catch(e){
-    log(`Error deleting document ${docToDelete}`)
+    log(`Error deleting document ${req.params.id}`)
     return res.status(500).json({
       error: 'Error deleting document'
     })

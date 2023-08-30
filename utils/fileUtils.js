@@ -7,7 +7,30 @@ const { log } = require('../utils/generalUtils')
 const Document = require('../backend/models/documentModel')
 require('dotenv').config()
 
-
+/**
+ * Name: 
+ * Desc: 
+ * @param {} var - 
+ * @returns {} var - 
+ */
+async function createAndStoreDocument(inputDoc) {
+  try {
+    log("creating and storing document")
+    const docData = await populateDocData(inputDoc) // generate doc data
+    const filePath = await generateNewDocument(docData) // generate new doc with doc data
+    const storedDocument = await injectDocument({ // store new doc in db
+      title: docData.fileName,
+      description: docData.description,
+      category: inputDoc.category,
+      fileName: docData.fileName,
+    })
+    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
+    await writeCsv(csvFilePath, storedDocument) // update csv
+    
+  } catch (error) {
+    console.error(`Error creating and storing document: ${error}`)
+  }
+}
 
 /**
  * Name: createAndStoreDocument
