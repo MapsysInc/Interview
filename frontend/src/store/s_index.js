@@ -40,6 +40,7 @@ export default createStore({
         const response = await axios.delete(`/docs/delete/${documentId}`);
         if (response.data.message === 'Document deleted') {
           commit('deleteDocument', documentId); // Update Vuex state
+          dispatch('fetchAllDocuments')
         }
       } catch(e){
         console.log(`error in delete documents ${e}`)

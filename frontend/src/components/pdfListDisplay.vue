@@ -7,7 +7,7 @@ div
     h3.form-label PDF LIST
     ul.list-group.container
         li(v-for="document in documents" 
-          :key="document.id" 
+          :key="document._id" 
           :class="{ 'list-group-item': true, 'active': isActive(document) }"
         )
           a(:href="document._id" target="#")
@@ -20,8 +20,6 @@ div
               div.col
                   
                   button.btn.btn-outline-danger.d-flex.flex-column(type="button" @click="confirmDelete(document._id, document.title)") Delete
-                  //- input.form-check-input#checkBoxDefault(type="checkbox")
-                  //- label.form-check-label(for="checkBoxDefault") Select
 </template>
     
 <script>
@@ -43,9 +41,6 @@ export default {
         return document && document.id === this.selectedId
     },
     async confirmDelete(documentId, documentTitle){
-      console.log('documentId:', documentId);
-  console.log('documentTitle:', documentTitle);
-
       const willDelete = window.confirm(`Confirm you would like to delete ${documentTitle}` )
       if(willDelete){
         await this.deleteDocument(documentId)

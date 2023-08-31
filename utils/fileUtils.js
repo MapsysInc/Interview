@@ -22,6 +22,7 @@ async function createAndStoreDocument(inputDoc) {
     log("creating and storing document")
     const docData = await populateDocData(inputDoc) // generate doc data
     await generateNewDocument(docData) // generate new doc with doc data
+    
     const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
       description: docData.description,
@@ -211,7 +212,8 @@ function readCsv(csvFilePath, baseDir, category){
     fs.createReadStream(csvFilePath)
     .pipe(csv())
     .on('data', (data) => { // each time data exists, call the following code
-      if(data.Category.toLowerCase() === category.toLowerCase()){
+      if(!category || data.Category.toLowerCase() === category.toLowerCase()){ // if category not passed in, read ALL
+        
         const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
         const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
         
@@ -245,6 +247,8 @@ async function writeCsv(csvFilePath, document){
     const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
     const dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
     
+    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim() // clean data before write to standarize
+    
     await fs.promises.appendFile(csvFilePath, dataToAppend)
     
   }catch(e){
@@ -266,17 +270,15 @@ async function writeCsv(csvFilePath, document){
  */
 async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
   try {
-    const csvData = await readCsv(csvFilePath, baseDir, docToDelete.category)
+    const csvData = await readCsv(csvFilePath, baseDir)
     const normalizePath = (url) => url.replace(/^\//, '').replace(/\\/g, '/')
-    log(`Initial csvData: ${JSON.stringify(csvData)}`)
+    
     const updatedCsvData = csvData.filter(
       (row) => {
-        log(`document's deletion file url: ${docToDelete.fileUrl}`)
-        log(`row url: ${row.Path}`)
+        // log(`document's deletion file url: ${docToDelete.fileUrl}`)
+        // log(`row url: ${row.Path}`)
         return normalizePath(row.Path) !== normalizePath(docToDelete.fileUrl)} // ensure slashes match - remove leading slash from fileUrl
     )
-    log(`updatedCsvData = ${JSON.stringify(updatedCsvData)}`)
-    
     
     await writeFromData(csvFilePath, updatedCsvData)
     return updatedCsvData
@@ -312,7 +314,8 @@ async function writeFromData(csvFilePath, csvData){
       Name: row.Name,
       Path: row.Path.replace(/^\//, ""),
       Category: formatCategory(row.Category)
-    })).filter(row => row !== null)
+    }))
+    .filter(row => row !== null && row.Name && row.Path) // filter to remove blank lines
 
     await csvW.writeRecords(formattedData)
     
@@ -332,7 +335,7 @@ function formatCategory(category) {
 
 
 module.exports = {
-  createAndStoreDocument: createAndStoreDocument,
+  createAndStoreDocument,
   getStorageDir,
   getPrefix,
   readCsv: readCsv,

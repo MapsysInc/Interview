@@ -50,8 +50,8 @@ router.post('/create', async (req, res) => {
   try {
     const inputDoc = {
       title: '', // TODO set props to user input values & defaults
-      description: 'supporting doc',
-      category: 'supporting documents' // TODO refactor category data type
+      description: 'signature document',
+      category: 'signatures' // TODO refactor category data type
     }
     
     const result = await createAndStoreDocument(inputDoc) // Call the utility function
@@ -117,7 +117,7 @@ router.get('/all', async (req, res) => {
 
 
 /**
- * Name: 
+ * Name: delete
  * Desc:
  * @param {} [variable_name] - The document object with properties like category, title, etc.
  * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
