@@ -1,4 +1,6 @@
 const csv = require('csv-parser')
+const csvW = require('csv-writer')
+const createCsvWriter = csvW.createObjectCsvWriter
 const fs = require('fs')
 const path = require('path')
 const PDFDocument = require('pdfkit') // initialize pdf construction
@@ -208,8 +210,8 @@ function readCsv(csvFilePath, baseDir, category){
     const results = []
     fs.createReadStream(csvFilePath)
     .pipe(csv())
-    .on('data', (data) => {
-      if(data.Category.toLowerCase() === category.toLowerCase()){ // i could prob encapsulte further
+    .on('data', (data) => { // each time data exists, call the following code
+      if(data.Category.toLowerCase() === category.toLowerCase()){
         const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
         const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
         
@@ -254,29 +256,66 @@ async function writeCsv(csvFilePath, document){
 
 
 /**
+ * Name: deleteDocFromCsv
+ * Desc: Deletes a specific document from the CSV file and returns the updated data.
+ * @param {String} csvFilePath - Path to the CSV file
+ * @param {String} baseDir - Base directory path
+ * @param {String} category - Category of the document
+ * @param {Object} docToDelete - Document object to delete
+ * @returns {Array} updatedCsvData - Updated CSV data after the document is deleted
+ */
+async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
+  try {
+    const csvData = await readCsv(csvFilePath, baseDir, docToDelete.category)
+    const normalizePath = (url) => url.replace(/^\//, '').replace(/\\/g, '/')
+    log(`Initial csvData: ${JSON.stringify(csvData)}`)
+    const updatedCsvData = csvData.filter(
+      (row) => {
+        log(`document's deletion file url: ${docToDelete.fileUrl}`)
+        log(`row url: ${row.Path}`)
+        return normalizePath(row.Path) !== normalizePath(docToDelete.fileUrl)} // ensure slashes match - remove leading slash from fileUrl
+    )
+    log(`updatedCsvData = ${JSON.stringify(updatedCsvData)}`)
+    
+    
+    await writeFromData(csvFilePath, updatedCsvData)
+    return updatedCsvData
+
+  } catch (e) {
+    console.error(`Error deleting document from CSV: ${e}`)
+    throw e
+  }
+}
+
+
+
+/**
  * Name: writeFromData
- * Desc: removes row in csv 
+ * Desc: removes row in csv that matches the meta-data of document
  * @param {} var - 
  * @param {} var -
  * @returns {} -
  */ 
 async function writeFromData(csvFilePath, csvData){
-  log("writeFromData() - deleting row and writing new data to csv ")
+  log("deleting row and writing new data to csv ")
   try {
-    const csvLines = csvData.map((row) => {
-      const path = row.Path.replace(/^\//, "")
-      let category = row.Category
-      
-      category = category === 'supporting documents' ? 'Supporting Documents' : category // set category
-      return `${row.description},${path},${category}`
+    const csvW = createCsvWriter({
+      path: csvFilePath,
+      header: [
+        {id: 'Name', title: 'Name'},
+        {id: 'Path', title: 'Path'},
+        {id: 'Category', title: 'Category'},
+      ]
     })
 
-    // const isEmpty = await fs.promises.stat(csvFilePath).size > 0
-    // const dataToAppend = isEmpty ? csvLines.join("\n") : csvLines.join("\n")
-    const dataToWrite = csvLines.join("\n");
+    const formattedData = csvData.map(row => ({
+      Name: row.Name,
+      Path: row.Path.replace(/^\//, ""),
+      Category: formatCategory(row.Category)
+    })).filter(row => row !== null)
+
+    await csvW.writeRecords(formattedData)
     
-    await fs.promises.writeFile(csvFilePath, dataToWrite)
-    // await fs.promises.writeFile(csvFilePath, dataToAppend)
   }catch(e){
     log("Error re-writing csv data")
     console.error(`Error updating CSV: ${e}`)
@@ -285,28 +324,11 @@ async function writeFromData(csvFilePath, csvData){
 }
 
 
-/**
- * Name: 
- * Desc: 
- * @param {} var - 
- * @returns {} var - 
- */
-async function deleteDocFromCsv(csvFilePath, baseDir, category, docToDelete){ //  (I don't like how many args there are)
-  try {
-    const csvData = await readCsv(csvFilePath, baseDir, category)
-    
-    const updatedCsvData = csvData.filter(
-      (row) => row.fullPath !== docToDelete.fileUrl
-    )
 
-    await writeFromData(csvFilePath, updatedCsvData)
-    return updatedCsvData
-    
-  } catch (e) {
-    console.error(`Error deleting document from CSV: ${e}`)
-    throw e
-  }
+function formatCategory(category) {
+  return category.toLowerCase() === 'supporting documents' ? 'Supporting Documents' : category
 }
+
 
 
 module.exports = {

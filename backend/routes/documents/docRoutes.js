@@ -145,17 +145,15 @@ router.delete('/delete/:id', async (req, res) =>{
     
     const baseDir = path.join(__dirname, '../../../Docs') // establish base dir
     const csvFilePath = path.join(baseDir, 'Documents.csv') // set csv file path
-    const category = docToDelete.category.toLowerCase()
     
-    const updatedCsvData = await deleteDocFromCsv(csvFilePath, baseDir, category, docToDelete) // delete from csv
-    log(`csv updated data ${updatedCsvData}`)
-    await writeFromData(csvFilePath, updatedCsvData)
+    deleteDocFromCsv({csvFilePath, baseDir, docToDelete}) // delete from csv
+
     return res.json({ message: `Docuemnt deleted` })
     
   }catch(e){
     log(`Error deleting document ${req.params.id}`)
     return res.status(500).json({
-      error: 'Error deleting document'
+      error: 'Error in deletion route'
     })
   }
 })
