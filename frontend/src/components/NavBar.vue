@@ -1,6 +1,6 @@
 <template lang="pug">
 nav.navbar.navbar-expand-lg.navbar-light.bg-light
-    a.navbar-brand(href="#") Navbar
+    a.navbar-brand(href="#") Document Manager
     button.navbar-toggler(
         type="button" 
         data-toggle="collapse" 
@@ -15,6 +15,7 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light
             a.nav-item.nav-link.active(href="/newDocument") Create PDF
                 span.sr-only (current)
             a.nav-item.nav-link(href="/pdfList") All Current PDFs
+            a.nav-item.nav-link(href="/uploadDocument") Upload a Document
             //- a.nav-item.nav-link.disabled(href="") Disabled
 </template>
 

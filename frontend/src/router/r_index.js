@@ -13,11 +13,11 @@ const routes = [
     name: 'newDocument',
     comopnent: vNewDocument
   },
-  // {
-  //   path:'/:id',
-  //   name: ':id',
-  //   component: DocumentDisplay
-  // },
+  {
+    path:'/:id',
+    name: ':id',
+    component: DocumentDisplay
+  },
 ]
 
 const router = createRouter({
