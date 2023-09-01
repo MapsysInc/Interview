@@ -26,12 +26,11 @@ const upload = multer({ storage: storage })
 
 
 
-// Create an API endpoint for file uploads
 /**
  * Name: 
  * Desc: 
- * @param {} [variable_name] - The document object with properties like category, title, etc.
- * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ * @param {} [variable_name] - 
+ * @returns {} [return_name] -
  */
 router.post('/upload', upload.single('file'), (req, res) => {
  // TODO
@@ -44,17 +43,13 @@ router.post('/upload', upload.single('file'), (req, res) => {
 /**
  * Name: 
  * Desc:
- * @param {} [variable_name] - The document object with properties like category, title, etc.
- * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ * @param {} [variable_name] - 
+ * @returns {} [return_name] -
  */
 router.post('/create', async (req, res) => {
   console.log("Received body: ", req.body); 
   try {
-    // const inputDoc = {
-    //   title: '', // TODO set props to user input values & defaults
-    //   description: 'signature document',
-    //   category: 'signatures' // TODO refactor category data type
-    // }
+
     const defaultValues = {
       'signatures': {
         title: 'default signature document title',
@@ -88,29 +83,6 @@ router.post('/create', async (req, res) => {
     res.status(500).json({ error: 'Error creating Document' })
   }
 })
-
-
-
-// serve static files from dynamic dirs based off url param
-// router.use('/:dir', (req, res, next) => {
-//   const dirParam = req.params.dir // default dir
-//   let baseDir = ''
-  
-//   // dir selection logic
-//   switch(dirParam){
-//     case 'SD':
-//       baseDir = '../../Docs/SD'
-//       break
-//     case 'SIG':
-//       baseDir = '../../Docs/SIG'
-//       break
-//     default:
-//       break
-//   }
-//   const staticRoot = path.join(__dirname, baseDir)
-//   req.dirPath = staticRoot
-//   next()
-// })
 
 /**
  * Name: 

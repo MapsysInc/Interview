@@ -263,10 +263,9 @@ async function writeCsv(csvFilePath, document){
     const isEmpty = stat ? stat.size === 0 : true
     
     let dataToAppend = isEmpty ? docData : `\n${docData}`
-    //dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
     dataToAppend = dataToAppend.replace(/\r\n/g, '\n')
      await fs.promises.appendFile(csvFilePath, dataToAppend)
-    // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
+    
     
   }catch(e){
     log("Error in write csv")
