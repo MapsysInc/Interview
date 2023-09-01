@@ -1,12 +1,13 @@
 const express = require('express')
 const multer = require('multer')
+const bodyParser = require('body-parser')
 const router = express.Router()
 const path = require('path')
 const {  createAndStoreDocument, readCsv, getStorageDir, getPrefix, deleteDocFromCsv, writeFromData} = require('../../../utils/fileUtils.js')
 const { log } = require('../../../utils/generalUtils')
 const Document = require('../../models/documentModel')
 const fs = require('fs') // file system needed to manage local documents
-
+router.use(bodyParser.json())
 // store generated docs
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -47,29 +48,44 @@ router.post('/upload', upload.single('file'), (req, res) => {
  * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
  */
 router.post('/create', async (req, res) => {
+  console.log("Received body: ", req.body); 
   try {
     // const inputDoc = {
     //   title: '', // TODO set props to user input values & defaults
     //   description: 'signature document',
     //   category: 'signatures' // TODO refactor category data type
     // }
+    const defaultValues = {
+      'signatures': {
+        title: 'default signature document title',
+        description: 'signatures'
+      },
+      'supporting documents': {
+        title: 'default supporting document title',
+        description: 'supporting documents'
+      },
+    }
     
-    const { title, description, category } = req.body; // destructure from request body
+    if (!req.body || !req.body.category) {
+      return res.status(400).json({ error: 'Category must be selected' })
+    }
+    const { title, description, category } = req.body;
 
-    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled'
-    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description'
+    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled';
+    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description';
 
     const inputDoc = {
-      title: title || defaultTitle, 
+      title: title || defaultTitle,
       description: description || defaultDescription,
-      category: category || 'uncategorized' 
+      category: category
     }
+    
     const result = await createAndStoreDocument(inputDoc) 
     res.json({ message: `Document ${inputDoc.title} saved successfully`, result })
     
   } catch (error) {
     console.error(`Error creating Document: ${error}`)
-    res.status(500).json({ error: 'Error creating Docuement' })
+    res.status(500).json({ error: 'Error creating Document' })
   }
 })
 
@@ -115,7 +131,6 @@ router.get('/all', async (req, res) => {
     const matchingDocuments = await Document.find({ fileUrl: { $in: documentPaths } })
 
     // return data
-    // console.log('Matching Documents:', matchingDocuments) // debug
     res.json(matchingDocuments)
 
   }catch (e){
@@ -129,8 +144,8 @@ router.get('/all', async (req, res) => {
 /**
  * Name: delete
  * Desc:
- * @param {} [variable_name] - The document object with properties like category, title, etc.
- * @returns {} [return_name] - A Promise that resolves after the document is created and stored.
+ * @param {} [variable_name] - 
+ * @returns {} [return_name] -
  */
 router.delete('/delete/:id', async (req, res) =>{
   try{

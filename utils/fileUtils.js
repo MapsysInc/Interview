@@ -29,9 +29,22 @@ async function createAndStoreDocument(inputDoc) {
       category: inputDoc.category,
       fileName: docData.fileName,
     })
-    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
-    await writeCsv(csvFilePath, storedDocument) // update csv
+
     
+    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
+    
+    if(inputDoc.title && inputDoc.description){
+      log(`title and description is filled out`)
+      const baseDir = getStorageDir(inputDoc.category)
+      
+      const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
+
+      await writeFromData(csvFilePath, csvData) // Update the CSV
+    
+    }else{
+      log('title or description is blank')
+      await writeCsv(csvFilePath, storedDocument)
+    }
   } catch (error) {
     console.error(`Error creating and storing document: ${error}`)
   }
@@ -211,14 +224,10 @@ function readCsv(csvFilePath, baseDir, category){
     const results = []
     fs.createReadStream(csvFilePath)
     .pipe(csv())
-    .on('data', (data) => { // each time data exists, call the following code
-      if(!category || data.Category.toLowerCase() === category.toLowerCase()){ // if category not passed in, read ALL
-        
-        const fullPath = path.join(baseDir, data.Path).replace(/\\/g, '/')
-        const relativePath = fullPath.replace(baseDir.replace(/\\/g, '/'), '')
-        
+    .on('data', (data) => {
+        const fullPath = path.join(baseDir || '', data.Path).replace(/\\/g, '/')
+        const relativePath = fullPath.replace((baseDir || '').replace(/\\/g, '/'), '')
         results.push({ ...data, fullPath, relativePath })
-      }
     })
     .on('end', () => resolve(results))
     .on('error', (error) => reject(error))
@@ -237,19 +246,27 @@ function readCsv(csvFilePath, baseDir, category){
 async function writeCsv(csvFilePath, document){
   log(" writing to csv ")
   try{
+
     const removedSlashUrl = document.fileUrl.replace(/^\//, '')
     let category = document.category.toLowerCase()
+    category = category === 'supporting documents' ? 'Supporting Documents' : category
     
-    category = category === 'supporting documents' ? 'Supporting Documents' : category // set category
+    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}`
     
-    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}` // 
+    // check if csv is empty
+    let stat
+    try {
+      stat = await fs.promises.stat(csvFilePath)
+    } catch (e) {
+      stat = null
+    }
+    const isEmpty = stat ? stat.size === 0 : true
     
-    const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
-    let dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
-    
-    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim() // clean data before write to standarize
-    
-    await fs.promises.appendFile(csvFilePath, dataToAppend)
+    let dataToAppend = isEmpty ? docData : `\n${docData}`
+    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
+
+     await fs.promises.appendFile(csvFilePath, dataToAppend)
+    // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
     
   }catch(e){
     log("Error in write csv")
@@ -275,8 +292,6 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
     
     const updatedCsvData = csvData.filter(
       (row) => {
-        // log(`document's deletion file url: ${docToDelete.fileUrl}`)
-        // log(`row url: ${row.Path}`)
         return normalizePath(row.Path) !== normalizePath(docToDelete.fileUrl)} // ensure slashes match - remove leading slash from fileUrl
     )
     
@@ -300,6 +315,7 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
  */ 
 async function writeFromData(csvFilePath, csvData){
   log("deleting row and writing new data to csv ")
+  
   try {
     const csvW = createCsvWriter({
       path: csvFilePath,
@@ -316,6 +332,7 @@ async function writeFromData(csvFilePath, csvData){
       Category: formatCategory(row.Category)
     }))
     .filter(row => row !== null && row.Name && row.Path) // filter to remove blank lines
+    console.log("Data to be written:", formattedData)
 
     await csvW.writeRecords(formattedData)
     

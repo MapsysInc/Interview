@@ -4,7 +4,7 @@
 -->
 <template lang="pug">
 div
-    PdfListDisplay(:documents="documents")
+    PdfListDisplay(v-if="documents" :documents="documents")
 </template>
     
 <script>
@@ -23,14 +23,17 @@ export default {
     },
     methods:{
         ...mapActions(['fetchAllDocuments'])
-    },
+    },    
     data(){ //store & manage reactive data
         return{
-            documents: []
+          
         }
     }, 
+   
     async created(){
+        console.log("Before fetch: ", this.documents)
         await this.fetchAllDocuments()
+        console.log("After fetch: ", this.documents)
     }
 }
 </script>

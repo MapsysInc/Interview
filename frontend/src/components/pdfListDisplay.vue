@@ -38,10 +38,11 @@ export default {
   methods:{
     ...mapActions(['deleteDocument']),
     isActive(document){
-        return document && document.id === this.selectedId
+        return document && document?.id === this.selectedId
     },
     async confirmDelete(documentId, documentTitle){
       const willDelete = window.confirm(`Confirm you would like to delete ${documentTitle}` )
+      
       if(willDelete){
         await this.deleteDocument(documentId)
       }
