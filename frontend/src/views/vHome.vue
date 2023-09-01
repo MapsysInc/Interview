@@ -1,15 +1,14 @@
 <template lang="pug">
 div.home
-  Layout
+  Landing
 </template>
 
 <script>
-// @ is an alias to /src
-import Layout from '../components/Layout.vue'
+import Landing from "@/components/Landing.vue"
 export default {
   name: 'vHome',
   components: {
-    Layout
+    Landing
   }
 }
 </script>

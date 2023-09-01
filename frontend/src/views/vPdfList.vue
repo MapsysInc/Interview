@@ -1,27 +1,24 @@
 <!-- 
- * Title: Landing.vue
- * Description:
+* Title:
+* Description:
 -->
 <template lang="pug">
 div
-    Landing
     PdfListDisplay(:documents="documents")
 </template>
     
 <script>
-import Landing from "@/components/Landing.vue"
 import PdfListDisplay from "@/components/pdfListDisplay.vue"
 
 import { mapState, mapActions } from "vuex"
 
 export default {
-    name: "Layout",
+    name: "vPdfList",
     props: {},
     computed:{
         ...mapState(['documents'])
     },
     components:{
-        Landing,
         PdfListDisplay,
     },
     methods:{

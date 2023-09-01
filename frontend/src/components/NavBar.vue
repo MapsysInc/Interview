@@ -1,21 +1,17 @@
 <template lang="pug">
 nav.navbar.navbar-expand-lg.navbar-light.bg-light
-    a.navbar-brand(href="#") Document Manager
-    button.navbar-toggler(
-        type="button" 
-        data-toggle="collapse" 
-        data-target="#navbarNavAltMarkup" 
-        aria-controls="navbarNavAltMarkup" 
-        aria-expanded="false" 
-        aria-label="Toggle navigation")
-    span.navbar-toggler-icon
-    
-    div.collapse.navbar-collapse#navbarNavAltMarkup
+    router-link.navbar-brand.nav-item.nav-link(:to="{ path: '/#' }" active-class="active")
+        img(src="../assets/images/documentStacked.svg" 
+            width="30" 
+            height="30" 
+            class="d-inline-block align-top" 
+            alt="") 
+        a Document Manager
+    div.navbar-collapse#navbarNavAltMarkup
         div.navbar-nav
-            a.nav-item.nav-link.active(href="/newDocument") Create PDF
-                span.sr-only (current)
-            a.nav-item.nav-link(href="/pdfList") All Current PDFs
-            a.nav-item.nav-link(href="/uploadDocument") Upload a Document
+            router-link.nav-item.nav-link(:to="{ path: '/newDocument' }" active-class="active") Create A PDF
+            router-link.nav-item.nav-link(:to="{ path: '/pdfList' }" exact-active-class="active") All Current PDFs
+            //- router-link.nav-item.nav-link(:to="{ path: '/#' }" active-class="active") Upload a Document
             //- a.nav-item.nav-link.disabled(href="") Disabled
 </template>
 
@@ -28,7 +24,3 @@ export default {
     methods:{},
 }
 </script>
-
-<style>
-
-</style>

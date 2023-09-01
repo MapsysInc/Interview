@@ -245,7 +245,7 @@ async function writeCsv(csvFilePath, document){
     const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}` // 
     
     const isEmpty = await fs.promises.stat(csvFilePath).size > 0 // handle initial line break
-    const dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
+    let dataToAppend = isEmpty ? docData : `\n${docData}` // if is empty is false, append a new line
     
     dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim() // clean data before write to standarize
     

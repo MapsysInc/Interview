@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import vHome from '../views/vHome.vue'
 import vNewDocument from '../views/vNewDocument.vue'
+import vPdfList from '../views/vPdfList.vue'
+
 
 const routes = [
   {
@@ -11,12 +13,12 @@ const routes = [
   {
     path:'/newDocument',
     name: 'newDocument',
-    comopnent: vNewDocument
+    component: vNewDocument
   },
   {
-    path:'/:id',
-    name: ':id',
-    component: DocumentDisplay
+    path:'/pdfList',
+    name: 'pdfList',
+    component: vPdfList
   },
 ]
 

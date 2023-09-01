@@ -6,13 +6,19 @@ axios.defaults.baseURL = 'http://localhost:3000/'
 export default createStore({
   state: {
     // state props
-    documents: []
+    documents: [],
+    showModal: false,
+    pdfSrc: '',
+    categories: ['signatures', 'supporting documents']
   },
   getters: {
     // getters
   },
   mutations: {
-    // mutations
+    addDocument(state,document){
+      state.documents.push(document)
+    },
+    
     setDocuments(state, documents){
       state.documents = documents
     },
@@ -20,6 +26,14 @@ export default createStore({
     deleteDocument(state, documentId) {
       state.documents = state.documents.filter(document => document.id !== documentId)
     },
+    
+    toggleModal(state, payload){
+      state.showModal = payload
+    },
+    
+    setPdfSrc(state, payload){
+      state.pdfSrc = payload
+    }
   },
   actions: {
     
@@ -33,7 +47,16 @@ export default createStore({
       }
     },
     
-    
+    async createAndStoreDocument({ commit }, payload) {
+      try {
+        const response = await axios.post('/docs/create', payload)
+        if (response.data.message.includes('saved successfully')) {
+          commit('addDocument', response.data.result)
+        }
+      } catch (e) {
+        console.log('Error in createAndStoreDocument', e)
+      }
+    },    
     
     async deleteDocument({commit}, documentId){
       try {
@@ -48,7 +71,13 @@ export default createStore({
       }
     },
     
-    // actions cont
+    toggleModal({commit}, payload){
+      commit('toggleModal', payload)
+    },
+    
+    setPdfSrc({commit}, payload){
+      commit('setPdfSrc', payload)
+    }
   },
   modules: {
   }

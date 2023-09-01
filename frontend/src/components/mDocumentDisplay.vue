@@ -1,7 +1,7 @@
 <template lang="pug">
-div(v-if="showModal" class="modal")
-    div(class="modal-content")
-        span(class="close" @click="closeModal") &times;
+div(v-if="showModal")
+    div()
+        span(class="close" @click="closeModal")
         embed(:src="pdfSrc" type="application/pdf" width="600" height="500")
 
 </template>
@@ -9,7 +9,6 @@ div(v-if="showModal" class="modal")
 <script>
 export default {
     name: 'DocumentDisplay',
-    
 }
 </script>
 

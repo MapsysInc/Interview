@@ -48,13 +48,23 @@ router.post('/upload', upload.single('file'), (req, res) => {
  */
 router.post('/create', async (req, res) => {
   try {
-    const inputDoc = {
-      title: '', // TODO set props to user input values & defaults
-      description: 'signature document',
-      category: 'signatures' // TODO refactor category data type
-    }
+    // const inputDoc = {
+    //   title: '', // TODO set props to user input values & defaults
+    //   description: 'signature document',
+    //   category: 'signatures' // TODO refactor category data type
+    // }
     
-    const result = await createAndStoreDocument(inputDoc) // Call the utility function
+    const { title, description, category } = req.body; // destructure from request body
+
+    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled'
+    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description'
+
+    const inputDoc = {
+      title: title || defaultTitle, 
+      description: description || defaultDescription,
+      category: category || 'uncategorized' 
+    }
+    const result = await createAndStoreDocument(inputDoc) 
     res.json({ message: `Document ${inputDoc.title} saved successfully`, result })
     
   } catch (error) {

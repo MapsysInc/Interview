@@ -1,10 +1,11 @@
 <template lang="pug">
 div
+  h1 Create a New Pdf!
   CreateForm
-  h1.text-info New Document
 </template>
 <script>
 import CreateForm from '../components/CreateForm.vue'
+
 export default {
   name: "vNewDocument",
   components:{
