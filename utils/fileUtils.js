@@ -33,18 +33,18 @@ async function createAndStoreDocument(inputDoc) {
     
     const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
     
-    if(inputDoc.title && inputDoc.description){
-      log(`title and description is filled out`)
-      const baseDir = getStorageDir(inputDoc.category)
+    // if(inputDoc.title && inputDoc.description){
+    //   log(`title and description is filled out`)
+    //   const baseDir = getStorageDir(inputDoc.category)
       
-      const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
+    //   const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
 
-      await writeFromData(csvFilePath, csvData) // Update the CSV
+    //   await writeFromData(csvFilePath, csvData) // Update the CSV
     
-    }else{
+    // }else{
       log('title or description is blank')
       await writeCsv(csvFilePath, storedDocument)
-    }
+    //}
   } catch (error) {
     console.error(`Error creating and storing document: ${error}`)
   }
@@ -263,8 +263,8 @@ async function writeCsv(csvFilePath, document){
     const isEmpty = stat ? stat.size === 0 : true
     
     let dataToAppend = isEmpty ? docData : `\n${docData}`
-    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
-
+    //dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
+    dataToAppend = dataToAppend.replace(/\r\n/g, '\n')
      await fs.promises.appendFile(csvFilePath, dataToAppend)
     // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
     
