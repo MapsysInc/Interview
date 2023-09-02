@@ -24,7 +24,7 @@ export default createStore({
     },
     
     deleteDocument(state, documentId) {
-      state.documents = state.documents.filter(document => document.id !== documentId)
+      state.documents = state.documents.filter(document => document._id !== documentId)
     },
     
     toggleModal(state, payload){
@@ -52,6 +52,7 @@ export default createStore({
         const response = await axios.post('/docs/create', payload)
         if (response.data.message.includes('saved successfully')) {
           commit('addDocument', response.data.result)
+          this.dispatch('fetchAllDocuments')
         }
       } catch (e) {
         console.log('Error in createAndStoreDocument', e)
@@ -63,7 +64,7 @@ export default createStore({
         const response = await axios.delete(`/docs/delete/${documentId}`);
         if (response.data.message === 'Document deleted') {
           commit('deleteDocument', documentId); // Update Vuex state
-          dispatch('fetchAllDocuments')
+          this.dispatch('fetchAllDocuments')
         }
       } catch(e){
         console.log(`error in delete documents ${e}`)

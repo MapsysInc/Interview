@@ -8,6 +8,7 @@ const { log } = require('../../../utils/generalUtils')
 const Document = require('../../models/documentModel')
 const fs = require('fs') // file system needed to manage local documents
 router.use(bodyParser.json())
+
 // store generated docs
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -74,7 +75,8 @@ router.post('/create', async (req, res) => {
       description: description || defaultDescription,
       category: category
     }
-    
+    // const x = x + 1
+    // const y = y + x
     const result = await createAndStoreDocument(inputDoc) 
     res.json({ message: `Document ${inputDoc.title} saved successfully`, result })
     

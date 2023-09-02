@@ -3,7 +3,7 @@
  * Description:
 -->
 <template lang="pug">
-div
+div(v-if='documents && documents.length > 0')
     h3.form-label PDF LIST
     ul.list-group.container
         li(v-for="document in documents" 
@@ -15,11 +15,12 @@ div
               div.d-flex.align-items.justify-content-between.col
                     a(:href="document._id" target="#")
                         button.btn.btn-primary.btn-lg.mb-auto {{ document.title }}
-                        //- p.fs-2 Description
                         p.text-wrap.fs-4 {{ document.description }}
               div.col
-                  
-                  button.btn.btn-outline-danger.d-flex.flex-column(type="button" @click="confirmDelete(document._id, document.title)") Delete
+                button.btn.btn-outline-danger.d-flex.flex-column(
+                  type="button" 
+                  @click="confirmDelete(document._id, document.title)"
+                ) Delete
 </template>
     
 <script>

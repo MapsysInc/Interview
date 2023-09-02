@@ -1,5 +1,5 @@
 <!-- 
-* Title:
+* Title: vPdfList
 * Description:
 -->
 <template lang="pug">
@@ -31,9 +31,8 @@ export default {
     }, 
    
     async created(){
-        console.log("Before fetch: ", this.documents)
         await this.fetchAllDocuments()
-        console.log("After fetch: ", this.documents)
+        
     }
 }
 </script>

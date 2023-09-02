@@ -33,18 +33,18 @@ async function createAndStoreDocument(inputDoc) {
     
     const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
     
-    // if(inputDoc.title && inputDoc.description){
-    //   log(`title and description is filled out`)
-    //   const baseDir = getStorageDir(inputDoc.category)
+    if(inputDoc.title && inputDoc.description){
+      log(`title and description is filled out`)
+      const baseDir = getStorageDir(inputDoc.category)
       
-    //   const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
+      const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
 
-    //   await writeFromData(csvFilePath, csvData) // Update the CSV
+      await writeFromData(csvFilePath, csvData) // Update the CSV
     
-    // }else{
+    }else{
       log('title or description is blank')
       await writeCsv(csvFilePath, storedDocument)
-    //}
+    }
   } catch (error) {
     console.error(`Error creating and storing document: ${error}`)
   }
@@ -57,7 +57,6 @@ async function createAndStoreDocument(inputDoc) {
  * Desc: Populates document data based on the specified category
  * @param {Object} inputDoc -
  * @returns {Object} An object containing the populated document data: fileName, filePath, and description.
- * TODO encapsulate ternary logic
  */
 async function populateDocData(inputDoc){
   try{
@@ -83,7 +82,7 @@ async function populateDocData(inputDoc){
 
 
 /**
- * Name: getFileName
+ * Name: setNameAndDescription
  * Desc: 
  * @param {object} inputDoc - 
  * @returns {substr} prefix - 
@@ -244,12 +243,11 @@ function readCsv(csvFilePath, baseDir, category){
  * @returns {Promise<void>} - A Promise that resolves after writing to the CSV.
  */ 
 async function writeCsv(csvFilePath, document){
-  log(" writing to csv ")
   try{
-
     const removedSlashUrl = document.fileUrl.replace(/^\//, '')
     let category = document.category.toLowerCase()
-    category = category === 'supporting documents' ? 'Supporting Documents' : category
+    
+    // category = category === 'supporting documents' ? 'Supporting Documents' : category
     
     const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}`
     
@@ -263,9 +261,10 @@ async function writeCsv(csvFilePath, document){
     const isEmpty = stat ? stat.size === 0 : true
     
     let dataToAppend = isEmpty ? docData : `\n${docData}`
-    dataToAppend = dataToAppend.replace(/\r\n/g, '\n')
+
+    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
      await fs.promises.appendFile(csvFilePath, dataToAppend)
-    
+    // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
     
   }catch(e){
     log("Error in write csv")
