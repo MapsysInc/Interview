@@ -9,7 +9,8 @@ const { log } = require('../utils/generalUtils')
 const Document = require('../backend/models/documentModel')
 require('dotenv').config()
 
-
+// global vars
+const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
 
 /**
  * Name: createAndStoreDocument
@@ -22,7 +23,11 @@ async function createAndStoreDocument(inputDoc) {
     log("creating and storing document")
     const docData = await populateDocData(inputDoc) // generate doc data
     await generateNewDocument(docData) // generate new doc with doc data
-    
+    log(`title: ${docData.fileName}, 
+    description: ${docData.description}, 
+    category: ${inputDoc.category}, 
+    fileName: ${docData.fileName}`)
+
     const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
       description: docData.description,
@@ -31,22 +36,20 @@ async function createAndStoreDocument(inputDoc) {
     })
 
     
-    const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
-    
-    if(inputDoc.title && inputDoc.description){
-      log(`title and description is filled out`)
+    if(!inputDoc.title && !inputDoc.description){
+      log('title or description is blank')
+      await writeCsv(csvFilePath, storedDocument)
+    } else {
+      log(`title and description are filled out`)
       const baseDir = getStorageDir(inputDoc.category)
       
       const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
-
-      await writeFromData(csvFilePath, csvData) // Update the CSV
     
-    }else{
-      log('title or description is blank')
-      await writeCsv(csvFilePath, storedDocument)
+      await writeFromData(csvFilePath, csvData) // Update the CSV
     }
-  } catch (error) {
-    console.error(`Error creating and storing document: ${error}`)
+    
+  } catch (e) {
+    log(`Error creating and storing document: ${e}`)
   }
 }
 
@@ -97,10 +100,11 @@ function setNameAndDescription(inputDoc){
   const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
   log(`doc roman numeral established: ${nextRomanNumeral}`)
   
+  // TODO if the category isn't given a specific title then set file name as this default
   const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
   log(`fileName: ${fileName}`)
   
-  descriptionID = romanToNumeric(nextRomanNumeral)
+  let descriptionID = romanToNumeric(nextRomanNumeral)
   const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${descriptionID}`
   log(`default description: ${description}`)
   return {fileName, description}
@@ -203,7 +207,7 @@ async function injectDocument(docData){
     log(`Document ${doc.title} saved successfully`)
     return doc
   }catch (e){
-    console.error(`Error saving document!!! ${e}`)
+    log(`Error saving document!!! ${e}`)
   }
 }
 
@@ -267,8 +271,7 @@ async function writeCsv(csvFilePath, document){
     // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
     
   }catch(e){
-    log("Error in write csv")
-    console.error(`Error updating CSV: ${e}`)
+    log(`Error updating CSV: ${e}`)
   }
 }
 
@@ -297,7 +300,7 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
     return updatedCsvData
 
   } catch (e) {
-    console.error(`Error deleting document from CSV: ${e}`)
+    log(`Error deleting document from CSV: ${e}`)
     throw e
   }
 }
@@ -335,8 +338,7 @@ async function writeFromData(csvFilePath, csvData){
     await csvW.writeRecords(formattedData)
     
   }catch(e){
-    log("Error re-writing csv data")
-    console.error(`Error updating CSV: ${e}`)
+    log(`Error re-writing CSV: ${e}`)
     throw e
   }
 }

@@ -62,21 +62,21 @@ router.post('/create', async (req, res) => {
       },
     }
     
-    if (!req.body || !req.body.category) {
+    if (!req.body || !req.body.category) { // check if category returns
       return res.status(400).json({ error: 'Category must be selected' })
     }
-    const { title, description, category } = req.body;
+    const { title, description, category } = req.body
 
-    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled';
-    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description';
+    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled'
+    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description'
 
     const inputDoc = {
       title: title || defaultTitle,
       description: description || defaultDescription,
       category: category
     }
-    // const x = x + 1
-    // const y = y + x
+    
+    
     const result = await createAndStoreDocument(inputDoc) 
     res.json({ message: `Document ${inputDoc.title} saved successfully`, result })
     

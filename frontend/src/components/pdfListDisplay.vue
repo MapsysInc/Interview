@@ -51,6 +51,7 @@ export default {
     
   }
 }
+
 </script>
 
 <style scoped lang="scss">
@@ -72,9 +73,5 @@ a {
       text-decoration: underline;
     }
 }
-// .pdfTitleButton{
-//   @extend .btn;
-//   @extend .btn-primary;
-//   @extend .btn-lg;
-// }
+
 </style>
