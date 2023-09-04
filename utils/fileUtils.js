@@ -35,18 +35,19 @@ async function createAndStoreDocument(inputDoc) {
       fileName: docData.fileName,
     })
 
+    await writeCsv(csvFilePath, storedDocument)
     
-    if(!inputDoc.title && !inputDoc.description){
-      log('title or description is blank')
-      await writeCsv(csvFilePath, storedDocument)
-    } else {
-      log(`title and description are filled out`)
-      const baseDir = getStorageDir(inputDoc.category)
+    // if(!inputDoc.title && !inputDoc.description){
+    //   log('title or description is blank')
+    //   await writeCsv(csvFilePath, storedDocument)
+    // } else {
+    //   log(`title and description are filled out`)
+    //   const baseDir = getStorageDir(inputDoc.category)
       
-      const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
+    //   const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
     
-      await writeFromData(csvFilePath, csvData) // Update the CSV
-    }
+    //   await refreshCsvData(csvFilePath, csvData) // Update the CSV
+    // }
     
   } catch (e) {
     log(`Error creating and storing document: ${e}`)
@@ -248,28 +249,26 @@ function readCsv(csvFilePath, baseDir, category){
  */ 
 async function writeCsv(csvFilePath, document){
   try{
-    const removedSlashUrl = document.fileUrl.replace(/^\//, '')
-    let category = document.category.toLowerCase()
-    
-    // category = category === 'supporting documents' ? 'Supporting Documents' : category
-    
-    const docData = `${document.description},${removedSlashUrl.replace(/\//g, '\\')},${category}`
-    
-    // check if csv is empty
-    let stat
-    try {
-      stat = await fs.promises.stat(csvFilePath)
-    } catch (e) {
-      stat = null
-    }
-    const isEmpty = stat ? stat.size === 0 : true
-    
-    let dataToAppend = isEmpty ? docData : `\n${docData}`
+    const csvW = createCsvWriter({
+      path: csvFilePath,
+      header: [
+        { id: 'Description', title: 'Description' },
+        { id: 'FileURL', title: 'FileURL' },
+        { id: 'Category', title: 'Category' },
+      ],
+      append: true,
+    })
 
-    dataToAppend = dataToAppend.replace(/\r\n/g, '\n').trim()
-     await fs.promises.appendFile(csvFilePath, dataToAppend)
-    // await fs.promises.appendFile(csvFilePath, `\nTest,Test,Test`)
-    
+    let category = document.category.toLowerCase()
+    const removedSlashUrl = document.fileUrl.replace(/^\//, '')
+
+    const record = {
+      Description: document.description || '',
+      FileURL: removedSlashUrl.replace(/\//g, '\\'),
+      Category: category,
+    }
+
+    await csvW.writeRecords([record])
   }catch(e){
     log(`Error updating CSV: ${e}`)
   }
@@ -296,7 +295,7 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
         return normalizePath(row.Path) !== normalizePath(docToDelete.fileUrl)} // ensure slashes match - remove leading slash from fileUrl
     )
     
-    await writeFromData(csvFilePath, updatedCsvData)
+    await refreshCsvData(csvFilePath, updatedCsvData)
     return updatedCsvData
 
   } catch (e) {
@@ -308,13 +307,13 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
 
 
 /**
- * Name: writeFromData
+ * Name: refreshCsvData
  * Desc: removes row in csv that matches the meta-data of document
  * @param {} var - 
  * @param {} var -
  * @returns {} -
  */ 
-async function writeFromData(csvFilePath, csvData){
+async function refreshCsvData(csvFilePath, csvData){
   log("deleting row and writing new data to csv ")
   
   try {
@@ -358,5 +357,5 @@ module.exports = {
   readCsv: readCsv,
   writeCsv: writeCsv,
   deleteDocFromCsv,
-  writeFromData,
+  refreshCsvData,
 }

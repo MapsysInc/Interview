@@ -3,24 +3,22 @@ const multer = require('multer')
 const bodyParser = require('body-parser')
 const router = express.Router()
 const path = require('path')
-const {  createAndStoreDocument, readCsv, getStorageDir, getPrefix, deleteDocFromCsv, writeFromData} = require('../../../utils/fileUtils.js')
 const { log } = require('../../../utils/generalUtils')
 const Document = require('../../models/documentModel')
 const fs = require('fs') // file system needed to manage local documents
+const {  createAndStoreDocument, readCsv, getStorageDir, getPrefix, deleteDocFromCsv} = require('../../../utils/fileUtils.js')
 router.use(bodyParser.json())
 
 // store generated docs
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Get the dirParam from the URL
-    const dirParam = req.params.dir
+    const dirParam = req.params.dir // Get the dirParam from the URL
     const storageDirectory = getStorageDir(dirParam)
     cb(null, storageDirectory)
   },
   
   filename: function (req, file, cb) {
-    // Define how uploaded files are named
-    cb(null, Date.now() + '-' + file.originalname)
+    cb(null, Date.now() + '-' + file.originalname) // Define how uploaded files are named
   },
 })
 const upload = multer({ storage: storage })
