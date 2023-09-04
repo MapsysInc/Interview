@@ -49,31 +49,15 @@ router.post('/create', async (req, res) => {
   console.log("Received body: ", req.body); 
   try {
 
-    const defaultValues = {
-      'signatures': {
-        title: 'default signature document title',
-        description: 'signatures'
-      },
-      'supporting documents': {
-        title: 'default supporting document title',
-        description: 'supporting documents'
-      },
-    }
-    
     if (!req.body || !req.body.category) { // check if category returns
       return res.status(400).json({ error: 'Category must be selected' })
     }
-    const { title, description, category } = req.body
-
-    const defaultTitle = defaultValues[category] ? defaultValues[category].title : 'Untitled'
-    const defaultDescription = defaultValues[category] ? defaultValues[category].description : 'No Description'
-
-    const inputDoc = {
-      title: title || defaultTitle,
-      description: description || defaultDescription,
+    const { title, description, category } = req.body // access body
+    const inputDoc = { // set doc values
+      title: title,
+      description: description,
       category: category
     }
-    
     
     const result = await createAndStoreDocument(inputDoc) 
     res.json({ message: `Document ${inputDoc.title} saved successfully`, result })
@@ -133,9 +117,7 @@ router.delete('/delete/:id', async (req, res) =>{
     
     //delete local file
     const filePath = path.join(__dirname, `../../../Docs/${dirCategory}/${docToDelete.title}`)
-    log(`filepath: ${filePath}`)
-    log(`title: ${docToDelete.title}`)
-
+    
     fs.unlinkSync(filePath) // delete from local
     
     await Document.findByIdAndRemove(req.params.id) // delete from db

@@ -22,11 +22,13 @@ async function createAndStoreDocument(inputDoc) {
   try {
     log("creating and storing document")
     const docData = await populateDocData(inputDoc) // generate doc data
+    
     await generateNewDocument(docData) // generate new doc with doc data
-    log(`title: ${docData.fileName}, 
-    description: ${docData.description}, 
-    category: ${inputDoc.category}, 
-    fileName: ${docData.fileName}`)
+    
+    // log(`title: ${docData.fileName}, 
+    // description: ${docData.description}, 
+    // category: ${inputDoc.category}, 
+    // fileName: ${docData.fileName}`)
 
     const storedDocument = await injectDocument({ // store new doc in db
       title: docData.fileName,
@@ -36,18 +38,6 @@ async function createAndStoreDocument(inputDoc) {
     })
 
     await writeCsv(csvFilePath, storedDocument)
-    
-    // if(!inputDoc.title && !inputDoc.description){
-    //   log('title or description is blank')
-    //   await writeCsv(csvFilePath, storedDocument)
-    // } else {
-    //   log(`title and description are filled out`)
-    //   const baseDir = getStorageDir(inputDoc.category)
-      
-    //   const csvData = await readCsv(csvFilePath, baseDir, inputDoc.category)
-    
-    //   await refreshCsvData(csvFilePath, csvData) // Update the CSV
-    // }
     
   } catch (e) {
     log(`Error creating and storing document: ${e}`)
@@ -66,18 +56,17 @@ async function populateDocData(inputDoc){
   try{
     log("populating document data")
 
-  // feels lazy but ternary  for now
-  const nameAndDescription = setNameAndDescription(inputDoc)
-  log(`file name established: ${nameAndDescription.fileName}`)
+    const fileName = setFileName(inputDoc)
+    const description = setDescription(inputDoc)
   
-  // const filePath = path.join(storageDir, fileName)
-  const filePath = path.join(getStorageDir(inputDoc.category), nameAndDescription.fileName) // sidestep scoping issue
-  log(`file path established: ${filePath}`)
+    const filePath = path.join(getStorageDir(inputDoc.category), fileName) // sidestep scoping issue
+    log(`file path established: ${filePath}`)
   
   return { 
-    fileName: nameAndDescription.fileName, 
-    description: nameAndDescription.description,
-    filePath}
+    fileName, 
+    description,
+    filePath
+  }
   }catch(e){
     log(`Error in populateDocData(): ${e}`)
   }
@@ -86,76 +75,77 @@ async function populateDocData(inputDoc){
 
 
 /**
- * Name: setNameAndDescription
+ * Name: setFileName
  * Desc: 
- * @param {object} inputDoc - 
- * @returns {substr} prefix - 
+ * @param {}  - 
+ * @returns {}  - 
  */
-function setNameAndDescription(inputDoc){
+function setFileName(inputDoc){
+  let fileName
+  log(`test fileName value: ${inputDoc.fileName}`)
+ 
+  if(!inputDoc.fileName){
+    const nextRomanNumeral = getGeneratedRoman(inputDoc)
+    fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
+  }
+  else{
+    fileName = inputDoc.fileName
+  }
+  return fileName
+}
+
+
+
+/**
+ * Name: setDescription
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
+function setDescription(inputDoc){
+  let description // description translates to "Name" in the csv
+  
+  if(inputDoc.description !== ''){
+    description = inputDoc.description
+    log(`set description: ${description}`)
+  }
+  else{
+    const nextRomanNumeral = getGeneratedRoman(inputDoc)
+    let descriptionID = romanToNumeric(nextRomanNumeral)
+    log(`description ID: ${descriptionID}`)
+    description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${descriptionID}`
+    log(`set description under else: ${description}`)
+  }
+  return description
+}
+
+
+
+/**
+ * Name: layupNextRomanParams
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
+function layupNextRomanParams(inputDoc){
   const storageDir = getStorageDir(inputDoc.category)
-  log(`storage directory established: ${storageDir}`)
+  const prefix = getPrefix(inputDoc)
   
-  const prefix = getPrefix(inputDoc) // hmm, calling before needed data is populated
-  log(`prefix value established: ${prefix}`)
-  
-  const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
-  log(`doc roman numeral established: ${nextRomanNumeral}`)
-  
-  // TODO if the category isn't given a specific title then set file name as this default
-  const fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
-  log(`fileName: ${fileName}`)
-  
-  let descriptionID = romanToNumeric(nextRomanNumeral)
-  const description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${descriptionID}`
-  log(`default description: ${description}`)
-  return {fileName, description}
+  return {storageDir, prefix}
 }
 
 
-
 /**
- * Name: getPrefix
+ * Name: 
  * Desc: 
- * @param {object} inputDoc - 
- * @returns {string} prefix - 
+ * @param {}  - 
+ * @returns {}  - 
  */
-function getPrefix(inputDoc){
-  let prefix = ''
-  let category = inputDoc.category
-  if (category === 'supporting documents'){
-    prefix = 'SD'
-  }
-  else if (category === 'signatures'){
-    prefix = 'SIG'
-  }
+function getGeneratedRoman(inputDoc){
+  const { storageDir, prefix } = layupNextRomanParams(inputDoc)
+  const nextRomanNumeral = generateNextRomanNumeral(storageDir, prefix)
   
-  return prefix
-}
-
-
-
-/**
- * Name: getStorageDir
- * Desc: Gets the storage directory based on the category.
- * @param {string} category - The category of the document ('supporting documents' or 'signatures').
- * @returns {string} - The storage directory path.
- */
-function getStorageDir(category) {
-  // log("establishing directory")
-  let baseDir = ''
-  switch (category) {
-    case 'supporting documents':
-      baseDir = '../Docs/SD'
-      break
-    case 'signatures':
-      baseDir = '../Docs/SIG'
-      break
-    default:
-      baseDir = '../Docs/SD' // Default to SD
-      break
-  }
-  log(`directory established: ${baseDir}`)
-  return path.join(__dirname, baseDir)
+  return nextRomanNumeral
 }
 
 
@@ -242,16 +232,16 @@ function readCsv(csvFilePath, baseDir, category){
 
 /**
  * Name: writeCsv
- * Desc: Writes document data to a CSV file.
+ * Desc: Writes document data to a CSV file from document passed in, writer tool reflects use case
  * @param {string} csvFilePath - The path to the CSV file.
  * @param {Document} document - The Document object to write to the CSV.
- * @returns {Promise<void>} - A Promise that resolves after writing to the CSV.
+ * @returns {Promise} - A Promise that resolves after writing to the CSV.
  */ 
 async function writeCsv(csvFilePath, document){
   try{
-    const csvW = createCsvWriter({
+    const csvW = createCsvWriter({ // new writer instance: configure header, enable append etc
       path: csvFilePath,
-      header: [
+      header: [// we use these headers to match document's properties
         { id: 'Description', title: 'Description' },
         { id: 'FileURL', title: 'FileURL' },
         { id: 'Category', title: 'Category' },
@@ -259,16 +249,16 @@ async function writeCsv(csvFilePath, document){
       append: true,
     })
 
-    let category = document.category.toLowerCase()
-    const removedSlashUrl = document.fileUrl.replace(/^\//, '')
+    let category = document.category.toLowerCase() // get category and normalize
+    const removedSlashUrl = document.fileUrl.replace(/^\//, '') // normalize slash structure again
 
-    const record = {
-      Description: document.description || '',
+    const record = { // record object to store doc data
+      Description: document.description || '', // set default
       FileURL: removedSlashUrl.replace(/\//g, '\\'),
       Category: category,
     }
 
-    await csvW.writeRecords([record])
+    await csvW.writeRecords([record]) // write all record data
   }catch(e){
     log(`Error updating CSV: ${e}`)
   }
@@ -309,16 +299,16 @@ async function deleteDocFromCsv({csvFilePath, baseDir, docToDelete}){
 /**
  * Name: refreshCsvData
  * Desc: removes row in csv that matches the meta-data of document
- * @param {} var - 
- * @param {} var -
- * @returns {} -
+ * @param {string} csvFilePath - 
+ * @param {} csvData -
+ * @returns {promise} -
  */ 
 async function refreshCsvData(csvFilePath, csvData){
   log("deleting row and writing new data to csv ")
   
   try {
-    const csvW = createCsvWriter({
-      path: csvFilePath,
+    const csvW = createCsvWriter({ // create writer instance 
+      path: csvFilePath, // set file path & header
       header: [
         {id: 'Name', title: 'Name'},
         {id: 'Path', title: 'Path'},
@@ -326,15 +316,15 @@ async function refreshCsvData(csvFilePath, csvData){
       ]
     })
 
-    const formattedData = csvData.map(row => ({
+    const formattedData = csvData.map(row => ({ // map array with new formatted data
       Name: row.Name,
-      Path: row.Path.replace(/^\//, ""),
+      Path: row.Path.replace(/^\//, ""), // fix url issues
       Category: formatCategory(row.Category)
     }))
     .filter(row => row !== null && row.Name && row.Path) // filter to remove blank lines
-    console.log("Data to be written:", formattedData)
+    // log("Data to be written:", formattedData)
 
-    await csvW.writeRecords(formattedData)
+    await csvW.writeRecords(formattedData) // await writeRecords
     
   }catch(e){
     log(`Error re-writing CSV: ${e}`)
@@ -344,8 +334,61 @@ async function refreshCsvData(csvFilePath, csvData){
 
 
 
+/**
+ * Name: 
+ * Desc: 
+ * @param {}  - 
+ * @returns {}  - 
+ */
 function formatCategory(category) {
   return category.toLowerCase() === 'supporting documents' ? 'Supporting Documents' : category
+}
+
+
+
+/**
+ * Name: getPrefix
+ * Desc: 
+ * @param {object} inputDoc - 
+ * @returns {string} prefix - 
+ */
+function getPrefix(inputDoc){
+  let prefix = ''
+  let category = inputDoc.category
+  if (category === 'supporting documents'){
+    prefix = 'SD'
+  }
+  else if (category === 'signatures'){
+    prefix = 'SIG'
+  }
+  
+  return prefix
+}
+
+
+
+/**
+ * Name: getStorageDir
+ * Desc: Gets the storage directory based on the category.
+ * @param {string} category - The category of the document ('supporting documents' or 'signatures').
+ * @returns {string} - The storage directory path.
+ */
+function getStorageDir(category) {
+  // log("establishing directory")
+  let baseDir = ''
+  switch (category) {
+    case 'supporting documents':
+      baseDir = '../Docs/SD'
+      break
+    case 'signatures':
+      baseDir = '../Docs/SIG'
+      break
+    default:
+      baseDir = '../Docs/SD' // Default to SD
+      break
+  }
+  log(`directory established: ${baseDir}`)
+  return path.join(__dirname, baseDir)
 }
 
 
