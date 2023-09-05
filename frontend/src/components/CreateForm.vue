@@ -63,7 +63,7 @@ export default {
             console.log("Form Data:", this.document)
             await this.$store.dispatch('createAndStoreDocument', this.document)
         } catch (e) {
-            console.log('Error submitting form', e)
+            console.log(`Error submitting form ${e}`)
         }
     },
     }

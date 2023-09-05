@@ -9,7 +9,7 @@ export default createStore({
     documents: [],
     showModal: false,
     pdfSrc: '',
-    categories: ['signatures', 'supporting documents']
+    categories: ['signatures', 'supporting documents'] // TODO dynamically allocate
   },
   getters: {
     // getters
@@ -52,7 +52,7 @@ export default createStore({
         const response = await axios.post('/docs/create', payload)
         if (response.data.message.includes('saved successfully')) {
           commit('addDocument', response.data.result)
-          this.dispatch('fetchAllDocuments')
+          this.dispatch('fetchAllDocuments') // hard reload
         }
       } catch (e) {
         console.log('Error in createAndStoreDocument', e)
@@ -64,7 +64,7 @@ export default createStore({
         const response = await axios.delete(`/docs/delete/${documentId}`);
         if (response.data.message === 'Document deleted') {
           commit('deleteDocument', documentId); // Update Vuex state
-          this.dispatch('fetchAllDocuments')
+          this.dispatch('fetchAllDocuments') // hard reload
         }
       } catch(e){
         console.log(`error in delete documents ${e}`)

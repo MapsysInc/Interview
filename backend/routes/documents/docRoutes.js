@@ -53,7 +53,7 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: 'Category must be selected' })
     }
     const { title, description, category } = req.body // access body
-    const inputDoc = { // set doc values
+    const inputDoc = { // set doc values to be passed
       title: title,
       description: description,
       category: category

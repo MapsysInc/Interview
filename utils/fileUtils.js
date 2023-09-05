@@ -14,7 +14,7 @@ const csvFilePath = path.join(__dirname, '..', 'Docs', 'Documents.csv')
 
 /**
  * Name: createAndStoreDocument
- * Desc: Creates and stores a document with the given information.
+ * Desc: Creates and stores a document with the given input doc information.
  * @param {Object} inputDoc - The document object with properties like category, title, etc.
  * @returns {Promise<void>} - A Promise that resolves after the document is created and stored.
  */
@@ -25,13 +25,8 @@ async function createAndStoreDocument(inputDoc) {
     
     await generateNewDocument(docData) // generate new doc with doc data
     
-    // log(`title: ${docData.fileName}, 
-    // description: ${docData.description}, 
-    // category: ${inputDoc.category}, 
-    // fileName: ${docData.fileName}`)
-
     const storedDocument = await injectDocument({ // store new doc in db
-      title: docData.fileName,
+      title: docData.fileTitle,
       description: docData.description,
       category: inputDoc.category,
       fileName: docData.fileName,
@@ -54,25 +49,30 @@ async function createAndStoreDocument(inputDoc) {
  */
 async function populateDocData(inputDoc){
   try{
-    log("populating document data")
+    log("----- populating document data -----")
 
     const fileName = setFileName(inputDoc)
     const description = setDescription(inputDoc)
-  
-    const filePath = path.join(getStorageDir(inputDoc.category), fileName) // sidestep scoping issue
+    const fileTitle = setFileTitle(inputDoc)
+    const filePath = path.join(getStorageDir(inputDoc.category.toLowerCase()), fileName) // sidestep scoping issue
     log(`file path established: ${filePath}`)
   
-  return { 
-    fileName, 
-    description,
-    filePath
-  }
+    return { 
+      fileName, 
+      description,
+      fileTitle,
+      filePath
+    }
   }catch(e){
     log(`Error in populateDocData(): ${e}`)
+    throw e
   }
 }
 
-
+function setFileTitle(inputDoc){
+  let fileTitle = inputDoc.title ? inputDoc.title : setFileName(inputDoc)
+  return fileTitle
+}
 
 /**
  * Name: setFileName
@@ -82,15 +82,16 @@ async function populateDocData(inputDoc){
  */
 function setFileName(inputDoc){
   let fileName
-  log(`test fileName value: ${inputDoc.fileName}`)
- 
-  if(!inputDoc.fileName){
-    const nextRomanNumeral = getGeneratedRoman(inputDoc)
-    fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
-  }
-  else{
+  
+  if(inputDoc.fileName){
     fileName = inputDoc.fileName
   }
+  else{
+    const nextRomanNumeral = getGeneratedRoman(inputDoc)
+    
+    fileName = `${inputDoc.category === 'supporting documents' ? 'SD' : 'SIG'}-${nextRomanNumeral}.pdf`
+  }
+  log(`fileName: ${fileName}`)
   return fileName
 }
 
@@ -105,16 +106,14 @@ function setFileName(inputDoc){
 function setDescription(inputDoc){
   let description // description translates to "Name" in the csv
   
-  if(inputDoc.description !== ''){
+  if(inputDoc.description){
     description = inputDoc.description
-    log(`set description: ${description}`)
   }
   else{
     const nextRomanNumeral = getGeneratedRoman(inputDoc)
     let descriptionID = romanToNumeric(nextRomanNumeral)
-    log(`description ID: ${descriptionID}`)
+    
     description = `${inputDoc.category === 'supporting documents' ? 'Supporting Document' : 'Signature'} ${descriptionID}`
-    log(`set description under else: ${description}`)
   }
   return description
 }
@@ -182,8 +181,8 @@ async function generateNewDocument(docData){
 async function injectDocument(docData){
   log("injecting document into db")
   try{
-    // instead of passing in multiple args I decided to encapsulate into an obj
-    const {title, description, category, fileName} = docData
+    
+    const {title, description, category, fileName} = docData// encapsulate into obj instead of multiple args
     const prefix = getPrefix(docData)
     const fileUrl = `/Docs/${prefix}/${fileName}`
 
