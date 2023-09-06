@@ -4,8 +4,8 @@
  * @param {string} message - The message to log.
  */
 function log(message) {
-    const timestamp = new Date().toISOString();
-    console.log(`> [${timestamp}] ${message} <`);
+    const timestamp = new Date().toISOString()
+    console.log(`> [${timestamp}] ${message} <`)
   }
   
 module.exports = {

@@ -38,10 +38,9 @@ router.post('/upload', upload.single('file'), (req, res) => {
 
 
 
-// route to create and store pdf
 /**
- * Name: 
- * Desc:
+ * Name: doc/create
+ * Desc: route to create and store pdf
  * @param {} [variable_name] - 
  * @returns {} [return_name] -
  */
