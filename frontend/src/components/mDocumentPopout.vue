@@ -1,15 +1,17 @@
 <template lang="pug">
-div(v-if="showModal")
-    div
-        span(class="close" @click="closeModal")
-        pdf-viewer(:src="pdfSrc" type="application/pdf" width="600" height="500")
+vuePdf(src='./devDir/docManager/Docs/SD/SD-I.pdf')
+//- div(v-if="showModal")
+    //- div
+    //-     span(class="close" @click="closeModal")
+    //-         PdfViewer(:src="pdfSrc" type="application/pdf" width="600" height="500")
 </template>
 
 <script>
-import PdfViewer from 'vue-pdf-embed'
+import {vuePdf} from 'vue-pdf'
+
 export default {
     name: 'DocumentPopout',
-    components:{ PdfViewer },
+    components:{ vuePdf },
     computed: {
         showModal() {
             return this.$store.state.showModal
