@@ -26,7 +26,7 @@ const upload = multer({ storage: storage })
 
 
 /**
- * Name: 
+ * Name: doc/upload
  * Desc: 
  * @param {} [variable_name] - 
  * @returns {} [return_name] -
@@ -95,6 +95,30 @@ router.get('/all', async (req, res) => {
 })
 
 
+
+/**
+ * Name: 
+ * Desc:
+ * @param {} [variable_name] - 
+ * @returns {} [return_name] - 
+ */
+router.get('/display/:id', async (req, res) => {
+  try {
+    const docToDisplay = await Document.findById(req.params.id)
+    const dirCategory = getPrefix(docToDisplay)
+    const filePath = path.join(__dirname, `../../../Docs/${dirCategory}/${docToDisplay.title}`)
+    
+    if (fs.existsSync(filePath)) { // check if file exists before sending
+      res.sendFile(filePath)
+    } else {
+      res.status(404).send({ message: 'Document not found' })
+    }
+  } catch (error) {
+    console.log('Error fetching document:', error)
+    res.status(500).send({ message: 'Internal server error' })
+  }
+ })
+ 
 
 /**
  * Name: delete

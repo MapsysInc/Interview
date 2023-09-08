@@ -39,8 +39,8 @@ export default createStore({
     
     async fetchAllDocuments({commit}){
       try{
-        const response = await axios.get('/docs/all')
-        commit('setDocuments', response.data)
+        const res = await axios.get('/docs/all')
+        commit('setDocuments', res.data)
       }catch(e){
         console.log('ERROR || s_Index fetchAllDcouments(): ', e)
         commit('setDocuments',[]) // clear array
@@ -63,12 +63,22 @@ export default createStore({
       try {
         const response = await axios.delete(`/docs/delete/${documentId}`);
         if (response.data.message === 'Document deleted') {
-          commit('deleteDocument', documentId); // Update Vuex state
+          commit('deleteDocument', documentId) // Update Vuex state
           this.dispatch('fetchAllDocuments') // hard reload
         }
       } catch(e){
         console.log(`error in delete documents ${e}`)
         commit('deleteDocument', documentId)
+      }
+    },
+    
+    async fetchDocumentById({commit}, documentId){
+      try{
+        const res = await axios.get(`docs/display/${documentId}`)
+        console.log(`api res: ${res.data}`)
+        commit('setPdfSrc', res.data.fileUrl)
+      }catch(e){
+        console.log(`Error fetching document by id ${e}`)
       }
     },
     

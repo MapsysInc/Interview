@@ -19,6 +19,8 @@
     "pug": "^3.0.2",
     "pug-plain-loader": "^1.1.0",
     "vue": "^3.2.13",
+    "vue-pdf": "^4.3.0",
+    "vue-pdf-embed": "^1.1.6",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"
   },
