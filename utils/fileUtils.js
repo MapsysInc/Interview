@@ -398,8 +398,6 @@ function getStorageDir(category) {
   return path.join(__dirname, baseDir)
 }
 
-
-
 module.exports = {
   createAndStoreDocument,
   getStorageDir,

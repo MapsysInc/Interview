@@ -15,6 +15,8 @@ const cookieParser = require('cookie-parser') // initialize parser
 const cors = require('cors') // initialize CORS (for all routes on Express server)
 const morgan = require('morgan') // initialize morgan logger
 const mongoose = require('mongoose') // initialize mongoose
+const path = require('path');
+const fs = require('fs');
 
 // execute express
 const app = express() // set as var
@@ -23,6 +25,10 @@ const app = express() // set as var
 app.use(cors()) // execute cors
 app.use(morgan('tiny')) // execute morgan
 app.use(cookieParser()) // execute cookieParser
+
+// serve files from this path
+// app.use('/static', express.static('../../../Docs'))
+app.use('/Docs', express.static(path.join(__dirname,'../Docs')))
 
 // set connection vars
 const url = process.env.DB_URL || 'mongodb://localhost:27017/pdfStorage'
@@ -47,4 +53,4 @@ mongoose.connect('mongodb://localhost:27017/pdfStorage')
   })
 
 // Define API endpoint
-app.use('/docs', docRoutes)//
+app.use('/docs', docRoutes)

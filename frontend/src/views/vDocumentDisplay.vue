@@ -30,6 +30,9 @@ export default {
                 console.log(`Error submitting form ${e}`)
             }
         },
+    },
+    data:{
+        pdfHardCodeSource: './devDir/docManager/Docs/SD/SD-I.pdf'
     }
 }
 </script>

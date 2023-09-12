@@ -97,7 +97,7 @@ router.get('/all', async (req, res) => {
 
 
 /**
- * Name: 
+ * Name: /doc/display/:id
  * Desc:
  * @param {} [variable_name] - 
  * @returns {} [return_name] - 
@@ -109,19 +109,23 @@ router.get('/display/:id', async (req, res) => {
     const filePath = path.join(__dirname, `../../../Docs/${dirCategory}/${docToDisplay.title}`)
     
     if (fs.existsSync(filePath)) { // check if file exists before sending
-      res.sendFile(filePath)
+      const fileUrl = `/Docs/${dirCategory}/${docToDisplay.title}`
+      
+      log(`file exists! file path: ${filePath}`)
+      
+      res.json({fileUrl})
     } else {
       res.status(404).send({ message: 'Document not found' })
     }
-  } catch (error) {
-    console.log('Error fetching document:', error)
+  } catch (e) {
+    log(`'Error fetching document ${e}`)
     res.status(500).send({ message: 'Internal server error' })
   }
  })
  
 
 /**
- * Name: delete
+ * Name: docs/delete/:id
  * Desc:
  * @param {} [variable_name] - 
  * @returns {} [return_name] -
@@ -159,6 +163,5 @@ router.delete('/delete/:id', async (req, res) =>{
     })
   }
 })
-
 
 module.exports = router // Export the router instance

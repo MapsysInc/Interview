@@ -75,8 +75,8 @@ export default createStore({
     async fetchDocumentById({commit}, documentId){
       try{
         const res = await axios.get(`docs/display/${documentId}`)
-        console.log(`api res: ${res.data}`)
-        commit('setPdfSrc', res.data.fileUrl)
+        log(`api res: ${res.data.fileUrl}`)
+        commit('setPdfSrc', `http://localhost:3000${res.data.fileUrl}`)
       }catch(e){
         console.log(`Error fetching document by id ${e}`)
       }
