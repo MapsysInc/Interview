@@ -5,7 +5,7 @@
 <template lang="pug">
 div
   div(v-if='documents && documents.length > 0')
-    mDocumentPopout
+    mDocumentPopout.modal-fade(role="dialog")
     h3.form-label PDF List
     ul.list-group.container
         li(v-for="document in documents" 

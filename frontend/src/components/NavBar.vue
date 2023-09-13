@@ -11,6 +11,7 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light
         div.navbar-nav
             router-link.nav-item.nav-link(:to="{ path: '/newDocument' }" active-class="active") Create A PDF
             router-link.nav-item.nav-link(:to="{ path: '/pdfList' }" exact-active-class="active") All Current PDFs
+            
             //- router-link.nav-item.nav-link(:to="{ path: '/#' }" active-class="active") Upload a Document
             //- a.nav-item.nav-link.disabled(href="") Disabled
 </template>

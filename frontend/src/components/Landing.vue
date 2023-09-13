@@ -5,6 +5,11 @@
 <template lang="pug">
 div
     h1 Welcome
+    br
+    span This is where user auth will occur
+    br
+    span nav bar will only populate when logged in 
+    br
 </template>
     
 <script>
