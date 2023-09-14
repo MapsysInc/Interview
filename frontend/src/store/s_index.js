@@ -36,7 +36,12 @@ export default createStore({
     }
   },
   actions: {
-    
+    /**
+     * Name: 
+     * Desc: 
+     * @param {}  - 
+     * @returns {}  - 
+     */
     async fetchAllDocuments({commit}){
       try{
         const res = await axios.get('/docs/all')
@@ -47,6 +52,13 @@ export default createStore({
       }
     },
     
+    
+  /**
+   * Name: 
+   * Desc: 
+   * @param {}  - 
+   * @returns {}  - 
+  */
     async createAndStoreDocument({ commit }, payload) {
       try {
         const response = await axios.post('/docs/create', payload)
@@ -57,7 +69,51 @@ export default createStore({
       } catch (e) {
         console.log('Error in createAndStoreDocument', e)
       }
-    },    
+    },
+    
+    
+  /**
+   * Name: 
+   * Desc: 
+   * @param {}  - 
+   * @returns {}  - 
+  */
+    async fetchDocumentById({commit}, documentId){
+      try{
+        const res = await axios.get(`docs/display/${documentId}`)
+        log(`api res: ${res.data.fileUrl}`)
+        commit('setPdfSrc', `http://localhost:3000${res.data.fileUrl}`)
+      }catch(e){
+        console.log(`Error fetching document by id ${e}`)
+      }
+    },
+  
+  
+  /**
+   * Name: 
+   * Desc: 
+   * @param {}  - 
+   * @returns {}  - 
+  */
+    async updateDocument({ commit }, { documentId, updateData, file }) {
+      try {
+        const formData = new FormData();
+        Object.keys(updateData).forEach(key => {
+          formData.append(key, updateData[key]);
+        });
+        if(file) {
+          formData.append('file', file);
+        }
+        
+        const response = await axios.post(`/docs/update/${documentId}`, formData);
+        if (response.data.message.includes('updated successfully')) {
+          commit('setDocuments', response.data.updatedDocument) // Update Vuex state with the new document data
+          this.dispatch('fetchAllDocuments') // hard reload to ensure data consistency
+        }
+      } catch (e) {
+        console.log(`Error in updateDocument: ${e}`)
+      }
+    },
     
     async deleteDocument({commit}, documentId){
       try {
@@ -71,16 +127,7 @@ export default createStore({
         commit('deleteDocument', documentId)
       }
     },
-    
-    async fetchDocumentById({commit}, documentId){
-      try{
-        const res = await axios.get(`docs/display/${documentId}`)
-        log(`api res: ${res.data.fileUrl}`)
-        commit('setPdfSrc', `http://localhost:3000${res.data.fileUrl}`)
-      }catch(e){
-        console.log(`Error fetching document by id ${e}`)
-      }
-    },
+
     
     toggleModal({commit}, payload){
       commit('toggleModal', payload)

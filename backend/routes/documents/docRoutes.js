@@ -123,6 +123,54 @@ router.get('/display/:id', async (req, res) => {
   }
  })
  
+ 
+ 
+/**
+ * Name: doc/update/:id
+ * Desc: Route to update a document's details and potentially its associated file
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Object} res - The response object
+ */
+router.post('/update/:id', upload.single('file'), async (req, res) => {
+  try {
+    const docId = req.params.id
+    const updateData = req.body
+
+    // Step 1: Update the database record
+    let updatedDocument = await Document.findByIdAndUpdate(docId, updateData, { new: true })
+    if (!updatedDocument) {
+      return res.status(404).json({ error: 'Document not found' })
+    }
+
+    // Step 2: If a new file is uploaded, handle the file update
+    if (req.file) {
+      const dirCategory = getPrefix(updatedDocument)
+      const oldFilePath = path.join(__dirname, `../../../Docs/${dirCategory}/${updatedDocument.title}`)
+      const newFilePath = path.join(__dirname, `../../../Docs/${dirCategory}/${req.file.filename}`)
+
+      // Remove the old file if exists
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath)
+      }
+
+      // Update the new file path in the database
+      updatedDocument.fileUrl = `/Docs/${dirCategory}/${req.file.filename}`
+      updatedDocument = await updatedDocument.save()
+    }
+
+    // Step 3: Update the CSV record (if necessary based on your utils)
+    // You might need to add an updateCsv function to your utils
+    // updateCsv({ csvFilePath, baseDir, updatedDocument })
+
+    res.json({ message: `Document ${updatedDocument.title} updated successfully`, updatedDocument })
+  } catch (error) {
+    log(`Error updating document ${docId}: ${error}`)
+    res.status(500).json({ error: 'Error updating document' })
+  }
+})
+
+
 
 /**
  * Name: docs/delete/:id

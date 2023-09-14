@@ -16,7 +16,6 @@ div(v-if="showModal")
     )
       div.modal-dialog.modal-lg(role='document')
         div.modal-content
-          div.modal-content
             h5.modal-title.m-3(id='docDisplayLabel') View & Update
                 button(
                     type='button', 
@@ -27,21 +26,22 @@ div(v-if="showModal")
                     span(
                         aria-hidden='true'
                     ) &times;
-          div.modal-body
-            vue-pdf-embed(
-                :source="pdfSrc" 
-                width="600" 
-                height="500"
-            )
-          div.modal-footer
-            UpdateForm
-            button.btn.btn-secondary(
-                type='button',
-                @click='closeModal'
-            ) Close
-            button.btn.btn-primary(
-                type='button'
-            ) Save changes
+            div.modal-body
+                vue-pdf-embed(
+                    :source="pdfSrc" 
+                    width="600" 
+                    height="500"
+                )
+            div.modal-footer
+                UpdateForm()
+                button.btn.btn-secondary(
+                    type='button',
+                    @click='closeModal'
+                ) Close
+                //- button.btn.btn-primary(
+                //-     type='button'
+                //-     @click=''
+                //- ) Save changes
 
 </template>
 
