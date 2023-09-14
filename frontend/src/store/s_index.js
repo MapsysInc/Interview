@@ -114,7 +114,14 @@ export default createStore({
         console.log(`Error in updateDocument: ${e}`)
       }
     },
-    
+
+
+  /**
+   * Name: 
+   * Desc: 
+   * @param {}  - 
+   * @returns {}  - 
+  */
     async deleteDocument({commit}, documentId){
       try {
         const response = await axios.delete(`/docs/delete/${documentId}`);
